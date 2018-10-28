@@ -38,11 +38,12 @@ class usuario():
   					self.msgprivate(data["Receptor"],data["Mensaje"])
   				elif data["Tipo"]=="#exit":
   					self.desconectar()
+  					break
   				elif data["Tipo"]=="#show users":
   					self.show_users()
   				elif data["Tipo"]=="Mensaje":
   					data.update({"Emisor":self.login})
-  					self.sala.msg_to_all(data)
+  					chatrooms[self.sala].msg_to_all(data)
   				elif data["Tipo"]=="#lR":
   					self.listarsalas()
   				else:# data["Tipo"]=="#dR":
@@ -63,20 +64,24 @@ class usuario():
 
 
   	def entrarsala(self,nombreSala):
-  		self.sala.remove_users(self.login)
+  		chatrooms[self.sala].remove_users(self.login)
   		chatroom=chatrooms[nombreSala]
   		chatroom.add_users(self.login)
-  		self.sala=chatroom
+  		self.sala=nombreSala
 
   	def salir(self):
-  		if self.sala.creador!="Server":
-  			self.sala.remove_users(self.login)
-  			self.sala=chatrooms["Default"]
+  		if self.sala!="Default":
+  			chatrooms[self.sala].remove_users(self.login)
+  			self.eliminarsala()
+  			self.sala="Default"
+  			chatrooms[self.sala].add_users(self.login)
 
   	def desconectar(self):
-  		self.conexion.close()
-  		self.sala.remove(self)
+  		chatrooms[self.sala].clientes.remove(self.login)
+  		self.eliminarsala()
   		del users[self.login]
+  		self.conexion.send("exit".encode())
+  		self.conexion.close()
 
   	def show_users(self):
   		userslist=[]
@@ -95,25 +100,21 @@ class usuario():
   		self.conexion.send(json.dumps(chatrooms_dict).encode())
 
   	def eliminarsala(self):
-  		if self.sala.creador==self.login:
-  			for cliente in self.sala.clientes:
+  		current_room=self.sala
+  		if chatrooms[current_room].creador==self.login:
+  			for cliente in chatrooms[current_room].clientes:
   				users[cliente].salir()
-  			chatrooms.remove(self.sala)
-  		else:
-  			self.conexion.send(json.dumps("Operacion no permitida").encode())
+  			chatrooms[current_room].clientes.clear()
+  			del chatrooms[current_room]
+  		#else:
+  		#	self.conexion.send(json.dumps("Operacion no permitida").encode())
     
 class sala():
 	def __init__(self,creador):
 		self.clientes=[]
 		self.creador=creador
-		#print("clientes: "+str(len(self.clientes)))
-		#thread_send = threading.Thread(target=self.send)
-		#self.add_users(self.creador)
-		#thread_send.daemon = True
-		#thread_send.start()
 
 	def msg_to_all(self, data):
-		print(self.creador)
 		for receptor in self.clientes:
 			if receptor != data["Emisor"] and receptor!= "Server":
 				users[receptor].conexion.send(json.dumps(data).encode())
@@ -175,7 +176,7 @@ class Servidor():
 	def startsession(self,username,password,conexion,flag=False):
 		campo=usuarios.find_one({"Login":username,"Password":hashlib.sha1(password.encode()).hexdigest()})
 		if campo or flag:
-			user=usuario(conexion,username,chatrooms['Default'])
+			user=usuario(conexion,username,"Default")
 			#print("usuario creado")
 			users[username]=user
 			self.conexiones.remove(conexion)

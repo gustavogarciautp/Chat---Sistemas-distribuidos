@@ -109,7 +109,7 @@ class Cliente():
             try:
                 data=self.s.recv(1024).decode('utf-8')
                 if data:
-                    print(data)
+                	print(data)
             except:
                 pass
 
