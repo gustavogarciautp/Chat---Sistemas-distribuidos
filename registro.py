@@ -5,6 +5,17 @@ from PIL import Image
 from PIL import ImageTk
 import json
 
+# Function to validate the entries of the user
+def validate_fields(event):
+	if len(varFirstName.get()) > 41:
+		error = "El campo nombre debe ser menor a 41 caracteres"
+		messagebox.showerror("error", error)
+		firstName.delete('0', 'end')
+		firstName.put_placeholder()
+	else:
+		create_file(event)
+
+# Function to create the json file to send to the server
 def create_file(event):
 	data = {
 	'nombre':varFirstName.get(),
@@ -74,7 +85,7 @@ gender.pack(expand = True)
 # Placing the button to continue and go in the app
 buttonContinue = AppButton(bodyFrame, 'continuar')
 buttonContinue.pack(side = RIGHT, pady = 50, padx = 50)
-buttonContinue.bind("<Button-1>", create_file)
+buttonContinue.bind("<Button-1>", validate_fields)
 
 # Setting the hover message for the entry password
 password.put_msg()
