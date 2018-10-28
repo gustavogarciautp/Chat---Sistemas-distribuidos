@@ -28,6 +28,7 @@ image = Image.open('logo/logo.png')
 image = image.resize((180, 180))
 logo = ImageTk.PhotoImage(image)
 label_logo = Label(headFrame, image = logo)
+label_logo['bg'] = label_logo.master['bg']
 label_logo.pack(expand = True)
 
 # Definition of the variables for the register
