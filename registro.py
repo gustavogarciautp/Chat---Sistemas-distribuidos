@@ -4,6 +4,9 @@ from base_gui import *
 from PIL import Image
 from PIL import ImageTk
 import json
+import re
+
+re_age = r'^[1-9][0-9]?$'
 
 # Function to validate the entries of the user
 def validate_fields(event):
@@ -12,8 +15,36 @@ def validate_fields(event):
 		messagebox.showerror("error", error)
 		firstName.delete('0', 'end')
 		firstName.put_placeholder()
-	else:
-		create_file(event)
+	elif varFirstName.get() == 'nombre':
+		error = "El campo nombre es requerido"
+		messagebox.showerror("error", error)
+	elif varLastName.get() == 'apellidos':
+		error = "El campo apellidos es requerido"
+		messagebox.showerror("error", error)
+	elif varUsername.get() == 'usuario':
+		error = "El campo usuario es requerido"
+		messagebox.showerror("error", error)
+	elif len(varPassword.get()) < 8:
+		error = "El campo contraseña debe ser mínimo de 8 caracteres"
+		messagebox.showerror("error", error)
+		password.delete('0', 'end')
+		password.put_placeholder()
+	elif varPassword.get() == 'contraseña':
+		error = "El campo contraseña es requerido"
+		messagebox.showerror("error", error)
+	elif varAge.get() == 'edad':
+		error = "El campo edad es requerido"
+		messagebox.showerror("error", error)
+	elif not re.match(re_age, varAge.get()):
+		print(varAge.get())
+		error = "Campo edad no valido"
+		messagebox.showerror("error", error)
+		age.delete('0', 'end')
+		age.put_placeholder()
+	elif varGender.get() == 'género':
+		error = "El campo género no ha sido seleccionado"
+		messagebox.showerror("error", error)
+
 
 # Function to create the json file to send to the server
 def create_file(event):
