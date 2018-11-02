@@ -15,6 +15,7 @@ class Cliente():
     
     def registrarse(self, data):
         self.s.send(data.encode())
+        return self.receive()
 
     def startsesion(self):
     	username=input("Login: ")
@@ -88,11 +89,11 @@ class Cliente():
         	self.entrada()
 
         
-    def receive (self):
+    def receive(self):
         while True:
             try:
-                data=self.s.recv(1024).decode('utf-8')
+                data = self.s.recv(1024).decode('utf-8')
                 if data:
-                	print(data)
+                    return data
             except:
                 pass

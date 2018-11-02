@@ -9,7 +9,7 @@ from cliente import *
 
 ip_server = input("Digite la dirección ip del servidor: ")
 
-re_name = r'^[a-zA-Zñ]+$'
+re_name = r'\b[a-zA-ZÑñ]+'
 re_username = r'^[a-zA-Z][a-zA-Z0-9_.-]+$'
 re_age = r'^[1-9][0-9]?$'
 
@@ -64,11 +64,20 @@ def validate_fields(event):
 		error = "El campo género no ha sido seleccionado"
 		messagebox.showerror("error", error)
 	else:
-		create_file()
+		send_data()
 
 
-# Function to create the json file to send to the server
+# Function to create the data file for the sesion
 def create_file():
+	data = {
+	'login':varUsername.get()
+	}
+	with open('data.txt', 'w') as file:
+		json.dump(data, file, ensure_ascii = False)
+		file.close()
+
+# Function to send the json file to the server
+def send_data():
 	data = {
 	'Tipo':'Registrarse',
 	'Nombre':varFirstName.get(),
@@ -78,9 +87,15 @@ def create_file():
 	'Edad':int(varAge.get()),
 	'Genero':varGender.get()
 	}
-	data = json.dumps(data, ensure_ascii=False)
+	data = json.dumps(data, ensure_ascii = False)
 	cliente = Cliente(ip_server)
-	cliente.registrarse(data)
+	result = cliente.registrarse(data)
+	if json.loads(result):
+		messagebox.showerror("error", result)
+		username.delete('0', 'end')
+		username.put_placeholder()
+	else:
+		create_file()
 
 
 # Definition of the main window and the frame containers of the app

@@ -40,6 +40,13 @@ varPassword = StringVar()
 # Creating and placing the entries for the register
 
 username = AppEntry(bodyFrame, 'usuario', AZUL_OSCURO, varUsername)
+username.delete('0', 'end')
+# Setting the default username for this client
+with open('data.txt') as file:
+	data = json.loads(file.read())
+	name = data['username']
+varUsername.set(name)
+username['state'] = "readonly"
 username.pack(pady=(40, 0))
 
 password = AppEntry(bodyFrame, 'contraseña', AZUL_OSCURO, 
@@ -49,7 +56,7 @@ password.pack(pady=(40, 0))
 # Placing the button to continue and go in the app
 buttonContinue = AppButton(bodyFrame, 'continuar')
 buttonContinue.pack(side = RIGHT, pady = 50, padx = 50)
-buttonContinue.bind("<Button-1>", create_file)
+buttonContinue.bind("<Button-1>")
 
 # Mainloop of the app
 window.mainloop()
