@@ -5,7 +5,12 @@ from PIL import Image
 from PIL import ImageTk
 import json
 import re
+from cliente import *
 
+ip_server = input("Digite la dirección ip del servidor: ")
+
+re_name = r'^[a-zA-Zñ]+$'
+re_username = r'^[a-zA-Z][a-zA-Z0-9_.-]+$'
 re_age = r'^[1-9][0-9]?$'
 
 # Function to validate the entries of the user
@@ -18,9 +23,24 @@ def validate_fields(event):
 	elif varFirstName.get() == 'nombre':
 		error = "El campo nombre es requerido"
 		messagebox.showerror("error", error)
+	elif not re.match(re_name, varFirstName.get()):
+		error = "Campo nombre no valido"
+		messagebox.showerror("error", error)
+		firstName.delete('0', 'end')
+		firstName.put_placeholder()
+	elif not re.match(re_name, varLastName.get()):
+		error = "Campo apellido no valido"
+		messagebox.showerror("error", error)
+		lastName.delete('0', 'end')
+		lastName.put_placeholder()
 	elif varLastName.get() == 'apellidos':
 		error = "El campo apellidos es requerido"
 		messagebox.showerror("error", error)
+	elif not re.match(re_username, varUsername.get()):
+		error = "Campo usuario no valido"
+		messagebox.showerror("error", error)
+		username.delete('0', 'end')
+		username.put_placeholder()
 	elif varUsername.get() == 'usuario':
 		error = "El campo usuario es requerido"
 		messagebox.showerror("error", error)
@@ -36,7 +56,6 @@ def validate_fields(event):
 		error = "El campo edad es requerido"
 		messagebox.showerror("error", error)
 	elif not re.match(re_age, varAge.get()):
-		print(varAge.get())
 		error = "Campo edad no valido"
 		messagebox.showerror("error", error)
 		age.delete('0', 'end')
@@ -44,20 +63,24 @@ def validate_fields(event):
 	elif varGender.get() == 'género':
 		error = "El campo género no ha sido seleccionado"
 		messagebox.showerror("error", error)
+	else:
+		create_file()
 
 
 # Function to create the json file to send to the server
-def create_file(event):
+def create_file():
 	data = {
-	'nombre':varFirstName.get(),
-	'apellido':varLastName.get(),
-	'usuario':varUsername.get(),
-	'contraseña':varPassword.get(),
-	'edad':int(varAge.get()),
-	'género':varGender.get()
+	'Tipo':'Registrarse',
+	'Nombre':varFirstName.get(),
+	'Apellido':varLastName.get(),
+	'Login':varUsername.get(),
+	'Password':varPassword.get(),
+	'Edad':int(varAge.get()),
+	'Genero':varGender.get()
 	}
-	with open('dataregistro.txt', 'w', encoding='utf8') as file:
-		json.dump(data, file, ensure_ascii=False)
+	data = json.dumps(data, ensure_ascii=False)
+	cliente = Cliente(ip_server)
+	cliente.registrarse(data)
 
 
 # Definition of the main window and the frame containers of the app
@@ -123,5 +146,4 @@ password.put_msg()
 
 # Mainloop of the app
 window.mainloop()
-
 

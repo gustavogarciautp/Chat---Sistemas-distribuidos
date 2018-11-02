@@ -3,34 +3,18 @@ import threading
 import json
 
 class Cliente():
-    def __init__(self):
+    def __init__(self, ip_server):
         self.s = socket.socket()
-        self.s.connect(("localhost", 8000))
+        self.s.connect((ip_server, 12732))
 
         #self.crearsala()
         
         thread_rcv= threading.Thread (target=self.receive)
         thread_rcv.daemon=True
         thread_rcv.start()
-
-        self.entrada()
-        
-        while True:
-            output_data = input("> ")
-            cad=json.dumps({"Tipo":"Mensaje","msg":output_data})
-            self.s.send(cad.encode())
     
-    def registrarse(self):
-        username=input("Nombre: ")
-        apellido=input("Apellido: ")
-        login=input("Login: ")
-        password=input("Password: ")
-        edad=input("Edad: ")
-        genero=input("Genero: ")
-        cad=json.dumps({"Tipo":"Registrarse","Nombre":username,"Apellido":apellido,"Login":login,
-        	"Password":password,"Edad":edad,"Genero":genero})
-        self.s.send(cad.encode())
-        #self.entrada()
+    def registrarse(self, data):
+        self.s.send(data.encode())
 
     def startsesion(self):
     	username=input("Login: ")
@@ -112,5 +96,3 @@ class Cliente():
                 	print(data)
             except:
                 pass
-
-c=Cliente()
