@@ -38,9 +38,11 @@ class AppButton(Button):
 
 
 class AppLabel(Label):
-	def __init__(self, frame, text, fg, w):
+	def __init__(self, frame, text, w):
 		super().__init__(frame, text = text, 
-			font = ('Helvetica 12'), fg = fg, width = w)
+			font = ('Helvetica 12'), width = w)
+		self['highlightthickness'] = 1
+		self['highlightcolor'] = NEGRO
 
 class AppOptionMenu(OptionMenu):
 	def __init__(self, frame, fg, w, var, *values):
@@ -127,3 +129,24 @@ class AppHoverMessage(Message):
 	def Remove(self, event):
 		self.pack_forget()
 		self.master.place_forget()
+
+
+class AppMenu:
+	def __init__(self, frame):
+		self.frame = frame
+		self.first_command = False
+
+	def add_command(self, label, command):
+		button = Button(self.frame, text = label, bg = AZUL_CLARO,
+			font=('Helvetica 12'), command = command)
+		button['activebackground'] = AZUL_OSCURO
+		button['activeforeground'] = BLANCO
+		button['cursor'] = 'hand2'
+		button['borderwidth'] = 1
+		button['highlightbackground'] = BLANCO
+		button['highlightcolor'] = AZUL_CLARO
+		if not self.first_command:
+			button.pack(pady = (50, 0), fill = X)
+			self.first_command = True
+		else:
+			button.pack(fill = X)
