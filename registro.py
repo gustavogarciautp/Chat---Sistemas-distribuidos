@@ -3,11 +3,9 @@
 from base_gui import *
 from PIL import Image
 from PIL import ImageTk
-import json
+from controlador import *
 import re
-from cliente import *
 
-ip_server = input("Digite la dirección ip del servidor: ")
 
 re_name = r'\b[a-zA-ZÑñ]+'
 re_username = r'^[a-zA-Z][a-zA-Z0-9_.-]+$'
@@ -88,14 +86,15 @@ def send_data():
 	'Genero':varGender.get()
 	}
 	data = json.dumps(data, ensure_ascii = False)
-	cliente = Cliente(ip_server)
-	result = cliente.registrarse(data)
+	'''result = client.registrarse(data)
 	if json.loads(result):
 		messagebox.showerror("error", result)
 		username.delete('0', 'end')
 		username.put_placeholder()
-	else:
-		create_file()
+	else:'''
+	create_file()
+	window.destroy()
+	os.system('python3 inicio_sesion.py')
 
 
 # Definition of the main window and the frame containers of the app

@@ -3,7 +3,8 @@
 from base_gui import *
 from PIL import Image
 from PIL import ImageTk
-import json
+from controlador import *
+
 
 def create_file(event):
 	data = {
@@ -22,7 +23,7 @@ headFrame = AppFrame(window=window, w=ANCHO*0.4, h=ALTO,
 bodyFrame = AppFrame(window=window, w=ANCHO*0.6, h=ALTO,
 	bg=AZUL_OSCURO, side=RIGHT)
 
-# Charging a placing the logo image of the app
+# Charging and placing the logo image of the app
 
 image = Image.open('logo/logo.png')
 image = image.resize((180, 180))
@@ -31,20 +32,20 @@ label_logo = Label(headFrame, image = logo)
 label_logo['bg'] = label_logo.master['bg']
 label_logo.pack(expand = True)
 
-# Definition of the variables for the register
+# Definition of the variables for the login
 
 varUsername = StringVar()
 varPassword = StringVar()
 
 
-# Creating and placing the entries for the register
+# Creating and placing the entries for the login
 
 username = AppEntry(bodyFrame, 'usuario', AZUL_OSCURO, varUsername)
 username.delete('0', 'end')
 # Setting the default username for this client
-with open('data.txt') as file:
+with open('data.txt', 'r') as file:
 	data = json.loads(file.read())
-	name = data['username']
+	name = data['login']
 varUsername.set(name)
 username['state'] = "readonly"
 username.pack(pady=(40, 0))
@@ -58,7 +59,6 @@ buttonContinue = AppButton(bodyFrame, 'continuar')
 buttonContinue.pack(side = RIGHT, pady = 50, padx = 50)
 buttonContinue.bind("<Button-1>")
 
+
 # Mainloop of the app
 window.mainloop()
-
-

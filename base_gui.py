@@ -19,6 +19,12 @@ class Window(Tk):
 		self.title(title)
 		self.geometry('%dx%d' % (ANCHO, ALTO))
 
+	def destroy(self):
+		import os
+		if os.path.exists('ip.txt'):
+			os.remove('ip.txt')
+		self.quit()
+
 
 class AppFrame(Frame):
 	def __init__(self, window, w, h, bg, side):
@@ -80,6 +86,7 @@ class AppEntry(Entry):
 
         self['justify'] = CENTER
         self['relief'] = FLAT
+        self['borderwidth'] = 10
 
     def put_placeholder(self):
         self.insert(0, self.placeholder)

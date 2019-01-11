@@ -5,7 +5,7 @@ import json
 class Cliente():
     def __init__(self, ip_server):
         self.s = socket.socket()
-        self.s.connect((ip_server, 12732))
+        self.s.connect((ip_server, 8000))
 
         #self.crearsala()
         
