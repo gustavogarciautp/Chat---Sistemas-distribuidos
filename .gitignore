@@ -6,7 +6,7 @@ data.txt
 
 # C extensions
 *.so
-
+*.binary
 # Distribution / packaging
 .Python
 build/
