@@ -1,18 +1,39 @@
 # --coding: utf-8--
 
-from base_gui import *
+from base_gui_classes import *
 from PIL import Image
 from PIL import ImageTk
 from chatroom import *
 
 
-def create_file(event):
+def validate_fields(event):
+	''' Function to validate the entries of the user '''
+	
+	if varPassword.get() == password.placeholder:
+		error = "El campo contraseña es requerido"
+		messagebox.showerror("error", error)
+	else:
+		send_data()
+
+def send_data():
+	''' Function to send the json file to the server '''
+
 	data = {
-	'usuario':varUsername.get(),
-	'contraseña':varPassword.get()
+	'Tipo':'startsession',
+	'Login':varUsername.get(),
+	'Password':varPassword.get()
 	}
-	with open('datasesion.txt', 'w', encoding='utf8') as file:
-		json.dump(data, file, ensure_ascii=False)
+	data = json.dumps(data, ensure_ascii = False)
+	'''result = client.startsession(data)
+	if json.loads(result):
+		messagebox.showerror("error", result)
+		password.delete('0', 'end')
+		password.put_placeholder()
+	else:'''
+	window.quit()
+	import subprocess
+	program = subprocess.Popen('python3 app.py', 
+		stdout=subprocess.PIPE, shell=True)
 
 
 # Definition of the main window and the frame containers of the app
@@ -57,7 +78,7 @@ password.pack(pady=(40, 0))
 # Placing the button to continue and go in the app
 buttonContinue = AppButton(bodyFrame, 'continuar')
 buttonContinue.pack(side = RIGHT, pady = 50, padx = 50)
-buttonContinue.bind("<Button-1>")
+buttonContinue.bind("<Button-1>", validate_fields)
 
 
 # Mainloop of the app

@@ -19,6 +19,6 @@ if __name__ == '__main__':
 	# Opens the login or the register
 
 	if os.path.exists('data.txt'):
-		from inicio_sesion import *
+		from login import *
 	else:
-		from registro import *
+		from singup import *

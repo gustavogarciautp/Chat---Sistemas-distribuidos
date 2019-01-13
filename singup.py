@@ -1,6 +1,6 @@
 # --coding: utf-8--
 
-from base_gui import *
+from base_gui_classes import *
 from PIL import Image
 from PIL import ImageTk
 from chatroom import *
