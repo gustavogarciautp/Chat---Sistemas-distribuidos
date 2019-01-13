@@ -3,16 +3,19 @@
 from base_gui import *
 from PIL import Image
 from PIL import ImageTk
-from controlador import *
+from chatroom import *
 import re
 
+
+# Regular expressions to recognize the diferent input fields
 
 re_name = r'\b[a-zA-ZÑñ]+'
 re_username = r'^[a-zA-Z][a-zA-Z0-9_.-]+$'
 re_age = r'^[1-9][0-9]?$'
 
-# Function to validate the entries of the user
 def validate_fields(event):
+	''' Function to validate the entries of the user '''
+
 	if len(varFirstName.get()) > 41:
 		error = "El campo nombre debe ser menor a 41 caracteres"
 		messagebox.showerror("error", error)
@@ -65,8 +68,9 @@ def validate_fields(event):
 		send_data()
 
 
-# Function to create the data file for the sesion
 def create_file():
+	''' Function to create the data file for the sesion '''
+
 	data = {
 	'login':varUsername.get()
 	}
@@ -74,8 +78,9 @@ def create_file():
 		json.dump(data, file, ensure_ascii = False)
 		file.close()
 
-# Function to send the json file to the server
 def send_data():
+	''' Function to send the json file to the server '''
+
 	data = {
 	'Tipo':'Registrarse',
 	'Nombre':varFirstName.get(),
@@ -93,8 +98,12 @@ def send_data():
 		username.put_placeholder()
 	else:'''
 	create_file()
-	window.destroy()
-	os.system('python3 inicio_sesion.py')
+	window.quit()
+	import subprocess
+	program = subprocess.Popen('python3 login.py', 
+		stdout=subprocess.PIPE, shell=True)
+	
+
 
 
 # Definition of the main window and the frame containers of the app

@@ -3,7 +3,7 @@
 from base_gui import *
 from PIL import Image
 from PIL import ImageTk
-from controlador import *
+from chatroom import *
 
 
 def create_file(event):

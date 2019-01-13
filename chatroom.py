@@ -3,6 +3,8 @@ from cliente import Cliente
 import json
 
 
+# Loading the client with the current ip server
+
 if os.path.exists('ip.txt'):
 	with open('ip.txt', 'r') as ip:
 		client = Cliente(json.load(ip)) # Creates the client
