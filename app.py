@@ -29,14 +29,14 @@ label_logo.pack(side = BOTTOM, padx = 10, pady = 20)
 # Main menu for the app
 
 menu = AppMenu(headFrame)
-menu.add_command(label = "crear sala", command = window.quit)
-menu.add_command(label = "entrar a sala", command = window.quit)
-menu.add_command(label = "salir de sala", command = window.quit)
-menu.add_command(label = "salas disponibles", command = window.quit)
-menu.add_command(label = "eliminar sala", command = window.quit)
-menu.add_command(label = "usuarios", command = window.quit)
-menu.add_command(label = "mensaje privado", command = window.quit)
-menu.add_command(label = "salir", command = window.quit)
+menu.add_command(label = "crear sala", command = window.destroy)
+menu.add_command(label = "entrar a sala", command = window.destroy)
+menu.add_command(label = "salir de sala", command = window.destroy)
+menu.add_command(label = "salas disponibles", command = window.destroy)
+menu.add_command(label = "eliminar sala", command = window.destroy)
+menu.add_command(label = "usuarios", command = window.destroy)
+menu.add_command(label = "mensaje privado", command = window.destroy)
+menu.add_command(label = "salir", command = window.destroy)
 
 
 ## auxiliar frame for the room and private message labels (To put these in top)

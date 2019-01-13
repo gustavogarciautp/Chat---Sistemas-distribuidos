@@ -64,8 +64,9 @@ varPassword = StringVar()
 username = AppEntry(bodyFrame, 'usuario', AZUL_OSCURO, varUsername)
 username.delete('0', 'end')
 # Setting the default username for this client
-with open('data.txt', 'r') as file:
-	data = json.loads(file.read())
+with open('data.binary', 'rb') as file:
+	unpickler = pickle.Unpickler(file)
+	data = unpickler.load()
 	name = data['login']
 varUsername.set(name)
 username['state'] = "readonly"

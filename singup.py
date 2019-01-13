@@ -74,8 +74,8 @@ def create_file():
 	data = {
 	'login':varUsername.get()
 	}
-	with open('data.txt', 'w') as file:
-		json.dump(data, file, ensure_ascii = False)
+	with open('data.binary', 'wb') as file:
+		pickle.dump(data, file)
 		file.close()
 
 def send_data():

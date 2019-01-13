@@ -21,8 +21,8 @@ class Window(Tk):
 
 	def destroy(self):
 		import os
-		if os.path.exists('ip.txt'):
-			os.remove('ip.txt')
+		if os.path.exists('ip.binary'):
+			os.remove('ip.binary')
 		self.quit()
 
 
