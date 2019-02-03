@@ -1,5 +1,5 @@
 import os
-from cliente import Cliente
+from cliente_socketio import Cliente
 import json
 import pickle
 

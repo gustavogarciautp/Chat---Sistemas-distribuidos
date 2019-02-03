@@ -19,21 +19,20 @@ def send_data():
 	''' Function to send the json file to the server '''
 
 	data = {
-	'Tipo':'startsession',
 	'Login':varUsername.get(),
 	'Password':varPassword.get()
 	}
 	data = json.dumps(data, ensure_ascii = False)
-	'''result = client.startsession(data)
+	result = client.startsession(data)
 	if json.loads(result):
 		messagebox.showerror("error", result)
 		password.delete('0', 'end')
 		password.put_placeholder()
-	else:'''
-	window.quit()
-	import subprocess
-	program = subprocess.Popen('python3 app.py', 
-		stdout=subprocess.PIPE, shell=True)
+	else:
+		window.quit()
+		import subprocess
+		program = subprocess.Popen('python3 app.py', 
+			stdout=subprocess.PIPE, shell=True)
 
 
 # Definition of the main window and the frame containers of the app

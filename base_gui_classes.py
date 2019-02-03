@@ -89,8 +89,8 @@ class AppEntry(Entry):
         self['borderwidth'] = 10
 
     def put_placeholder(self):
-        self.insert(0, self.placeholder)
-        self['fg'] = self.placeholder_color
+    	self.insert(0, self.placeholder)
+    	self['fg'] = self.placeholder_color
 
     def foc_in(self, event, *args):
         if self['fg'] == self.placeholder_color:
@@ -116,6 +116,11 @@ class AppEntry(Entry):
     	auxFrame = Frame(self.master, height = self.height)
     	self.msg = AppHoverMessage(auxFrame, self, self.msg)
 
+
+class AppMessage(Message):
+	def __init__(self, frame, text):
+		super().__init__(self, frame, text = text)
+		self['font'] = ('Helvetica', 12)
 
 class AppHoverMessage(Message):
 	def __init__(self,frame, parent, text):

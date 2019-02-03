@@ -82,7 +82,6 @@ def send_data():
 	''' Function to send the json file to the server '''
 
 	data = {
-	'Tipo':'Registrarse',
 	'Nombre':varFirstName.get(),
 	'Apellido':varLastName.get(),
 	'Login':varUsername.get(),
@@ -91,17 +90,17 @@ def send_data():
 	'Genero':varGender.get()
 	}
 	data = json.dumps(data, ensure_ascii = False)
-	'''result = client.registrarse(data)
+	result = client.registrarse(data)
 	if json.loads(result):
 		messagebox.showerror("error", result)
 		username.delete('0', 'end')
 		username.put_placeholder()
-	else:'''
-	create_file()
-	window.quit()
-	import subprocess
-	program = subprocess.Popen('python3 login.py', 
-		stdout=subprocess.PIPE, shell=True)
+	else:
+		create_file()
+		window.quit()
+		import subprocess
+		program = subprocess.Popen('python3 login.py', 
+			stdout=subprocess.PIPE, shell=True)
 	
 
 
