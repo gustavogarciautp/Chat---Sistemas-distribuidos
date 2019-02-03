@@ -1,9 +1,7 @@
-import threading
 import json
 import pymongo
 import hashlib
 from pymongo import MongoClient
-import pprint
 
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit, join_room, leave_room, rooms, Namespace, close_room, disconnect,send
@@ -12,8 +10,7 @@ client = MongoClient()
 db = client.chatdistribuidos  #obtiene la base de datos
 
 usuarios = db.usuario
-msgprivate=db.private
-chatrooms={}
+salas=db.sala
 users={}
 sids={}
 
@@ -21,14 +18,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 sio = SocketIO(app)
 
-
-class usuario():
-  def __init__(self,sid,login):
-    self.sid=sid
-    self.login=login
-    self.roomscreate=[]
-
-    """
+"""
     if data["Tipo"]=="#cR":
       self.crearsala(data["Nombre"])
     elif data["Tipo"]=="#gR":
@@ -49,107 +39,88 @@ class usuario():
     else:
       self.eliminarsala()
     """
-class sala():
-  def __init__(self,creador):
-    self.clientes=[]
-    self.creador=creador
-    self.mensajes=[]
-
-  def add_message(self, data):
-    self.mensajes.append(data)
-
-  def add_users(self, username):
-    self.clientes.append(username)
-
-  def remove_users(self, username):
-    self.clientes.remove(username)
-
-
 class Servidor(Namespace):
   """docstring for Servidor"""
   def __init__(self):
     Namespace.__init__(self,'/')
-    chatrooms['Default']=sala("Server")
+    salas.insert_one({"Nombre":"Default", "Mensajes":[], "Usuarios":0})
+    print("server")
     
   def on_connect(self):
     print('connect ', request.sid)
-    emit('conectado', 'r')
-    #print(chatrooms)
+    print(type(request.sid))
+    #emit('conectado', 'r')
 
   def on_Registrarse(self,data):
-    print("yes")
+    data= json.loads(data)
     campo_login=usuarios.find_one({"Login":data["Login"]})
     if campo_login:
-      print("ya existe")
-      return ("El nombre de usuario ya existe")
+      return json.dumps("El nombre de usuario ya existe")
     else:
-      print(data)
       data["Password"]=hashlib.sha1(data["Password"].encode()).hexdigest()
+      data["Mensajes_nuevos"]=[]
+      data["Mensajes_viejos"]=[]
+      data["Sala_creada"]=""
+      data["Sala"]=""
       usuarios.insert_one(data)
-      #conexion.send(json.dumps("Campo ingresado").encode())
-      print("ingresado")
-      return ("ingresado")
+      return json.dumps("")
 
   def on_startsession(self,data):
-    print(data)
+    data= json.loads(data)
+
+    #Verificar que no hayan usuarios con el mismo Username
     campo=usuarios.find_one({"Login":data["Login"],"Password":hashlib.sha1(data["Password"].encode()).hexdigest()})
-    if campo:
-      user=usuario(request.sid,data["Login"])
-      
+    if campo:    
       sids[request.sid] = data["Login"]
-      users[data["Login"]]=user
+      users[data["Login"]]= request.sid
+      print(sids)
 
-      chatroom=chatrooms['Default']
       join_room('Default')
-      chatroom.add_users(data["Login"])
+      room=self.findRoom(request.sid)
+      usuarios.update_one(campo, {"$set": {"Sala":room}})
 
-      #conexion.send(json.dumps("").encode())
-      if len(chatroom.mensajes)>0:
-        emit('mensaje',chatroom.mensajes)
+      sala= salas.find_one_and_update({"Nombre": "Default"}, {'$inc': {'Usuarios': 1}})
 
-      self.recv_msg_private(data["Login"])
-      print("Inicio de sesion")
-      return "Contraseña correcta"
+      if len(sala["Mensajes"])>0:
+        emit('Mensaje',json.dumps(sala["Mensajes"]))
+
+      if len(campo["Mensajes_viejos"])>0:
+        emit("PrivateOld", json.dumps(campo["Mensajes_viejos"]))
+
+      if len(campo["Mensajes_nuevos"])>0:
+        emit("PrivateNew", json.dumps(campo["Mensajes_nuevos"]))
+        
+      return json.dumps("")
     else:
-      print("Inicio de sesion fallido")
-      return ("Contraseña incorrecta")
-
-  def recv_msg_private(self,username):
-    msg=[]
-    messages=msgprivate.find({"Receptor":username})
-    for message in messages:
-      msgprivate.delete_one(message)
-      del message["Receptor"]
-      del message["_id"]
-      msg.append(message)
-    if len(msg)>0:
-      emit('mensaje',msg)
+      return json.dumps("Contrasena incorrecta")
 
   def on_disconnect(self):
     print('disconect', request.sid)
     user=sids.get(request.sid,False)
     if user: 
-      print("disconect")
-      self.on_desconectar(user)
+      #print("disconect")
+      self.desconectar(user)
 
+  #Data es un string
   def on_mensaje(self,data):
+    data=json.loads(data)
     user= sids[request.sid]
     room= self.findRoom(request.sid)
-    data.update({"Emisor":user})
-    chatrooms[room].add_message(data)
-    sio.emit('mensaje',data,room=room)
+    data2[user]= data#data.update({"Emisor":user})
+    salas.update_one({"Nombre":room},{'$push':{"Mensajes": data2}})
+    sio.emit('Mensaje',json.dumps(data2),room=room)
 
   def on_crearsala(self,nombreSala):
-    chatroom=chatrooms.get(nombreSala,False) 
+    nameRoom=json.loads(nombreSala)
+    chatroom=salas.find_one({"Nombre":nombreSala})
     if not chatroom:
       username=sids[request.sid]
-      chatroom=sala(username)
-      chatrooms[nombreSala]=chatroom
-      users[username].roomscreate.append(nombreSala)
+      salas.insert_one({"Nombre":nameRoom,"Mensajes":[], "Usuarios":0})
+      usuarios.update_one({"Login":username},{'$set':{"Sala_creada":nameRoom}})
       self.on_entrarsala(nombreSala,username)
-      return ("Se ha creado la sala")
+      return json.dumps("")
     else:
-      return ("Sala ya existe")
+      return json.dumps("La sala "+nameRoom+"ya existe")
 
   def findRoom(self,sid):
     chatrooms= rooms(sid=sid)
@@ -160,100 +131,121 @@ class Servidor(Namespace):
 
 
   def on_entrarsala(self,nombreSala, username=''):
+    nombreSala= json.loads(nombreSala)
+
     if not username:
       username=sids[request.sid]
 
     chatroom= self.findRoom(request.sid)
-    chatrooms[chatroom].remove_users(username)
+    salas.update_one({"Nombre": chatroom}, {'$inc': {'Usuarios': -1}})
+    usuarios.update_one({"Login":username},{'$set':{"Sala":nombreSala}})
     leave_room(room=chatroom)
-    chatroom=chatrooms[nombreSala]
-    chatroom.add_users(username)
+    sala=salas.update_one_and_update({"Nombre":nombreSala}, {'$inc': {'Usuarios':1}})
     join_room(room=nombreSala)
-    if len(chatroom.mensajes)>0:
-      return chatroom.mensajes
-    return "Ha accedido a la sala"
+    if len(sala["Mensajes"])>0:
+      return json.dumps(sala["Mensajes"])
+    return json.dumps("")
 
   def on_salir(self, user=''):
     if not user:
       sid=request.sid
       user= sids[sid]
     else:
-      sid=users[user].sid
+      sid=users[user]
     room= self.findRoom(sid)
     if room!="Default":
-      #print("salir de sala "+room+" user: "+user)
-      chatrooms[room].remove_users(user)
+      salas.update_one({"Nombre":room},{'$inc':{'Usuarios':-1}})
       leave_room(room=room, sid=sid)
-      #self.on_eliminarsala(user,room)
-      chatrooms["Default"].add_users(user)
+      salas.update_one({"Nombre":"Default"},{'$inc':{'Usuarios':1}})
+      usuarios.update_one({"Login":user},{'$set':{'Sala':'Default'}})
       join_room(room="Default", sid=sid)
 
-  def on_desconectar(self, user=''):
-    print(rooms())
+  def desconectar(self, user):
+    #print(rooms())
     room= self.findRoom(request.sid)
-
-    if not user:
-      user=sids[request.sid]
-    chatrooms[room].remove_users(user)
+    salas.update_one({"Nombre": room}, {'$inc': {'Usuarios': -1}})
     leave_room(room=room)
-    for cRoom in users[user].roomscreate:
-      self.deleteroom(cRoom)
-    users[user].roomscreate.clear()
+
+    usuario=usuarios.find_one({"Login":user})
+    self.deleteroom(usuario["Sala_creada"])
+    usuarios.update_one({"Login":user}, {'$set':{'Sala_creada':"",'Sala':""}})
+    
     del users[user]
     del sids[request.sid]
 
   def on_show_users(self):
-    userslist=[]
-    for usuario in usuarios.find():
-      userslist.append(usuario['Login'])
-    return userslist
+    userslist=[usuario["Login"] for usuario in usuarios.find()]
+    return json.dumps(userslist)
+
 
   def on_private(self,data):
-    print("private")
-    recp=users.get(data["Receptor"],False)
+    #print("private")
+    data= json.loads(data)
+    recp=data["Receptor"]
+    idrecp=users.get(recp,False)
+    print(sids)
+    print(request.sid)
     user=sids[request.sid]
     data["Emisor"]=user
-    print("emisor: "+user)
-    if recp:
-      del data["Receptor"]
-      print("Receptor", recp.sid)
-      sio.emit('mensaje',data, room=recp.sid)
+    print("emisor: "+recp)
+    del data["Receptor"]
+    if idrecp:
+      print("Receptor", idrecp)
+      sio.emit('private',json.dumps(data), room=idrecp)
+
+    a=usuarios.find_one({"Login":recp,"Mensajes_nuevos."+user: {'$exists':True}})
+
+    if a:
+      usuarios.update_one({"Login":recp}, {'$push':{"Mensajes_nuevos.$[element]."+user:data["Mensaje"]}}, array_filters=[{"element."+user:{'$exists':True}}])
     else:
-      msgprivate.insert_one(data)
+      usuarios.update_one({"Login":recp}, {'$push':{"Mensajes_nuevos":{user:[data["Mensaje"]]}}})
+
+  def on_read_message(self, data):
+    data=json.loads(data)
+    username= sids[request.sid]
+    usuario=usuarios.find_one({"Login":username})
+    for message in usuario["Mensajes_nuevos"]:
+      if data in message:
+        break 
+    if len(usuario["Mensajes_viejos"])==0:
+      usuarios.update_one({"Login":username},{'$push':{"Mensajes_viejos":{data:message}}})
+    else:
+      usuarios.update_one({"Login":username},{'$push':{"Mensajes_viejos.$[element]."+data:{'$each':message}}}, array_filters=[{"element."+data:{"$exists":True}}])
+    
+    usuarios.update_one({"Login":username},{'$pull':{"Mensajes_nuevos":message}})
+
+    #usuarios.update_one({"Login":"cr7"},{'$unset':{"Mensajes_nuevos.$[element].Emisor":""}},upsert=True,array_filters=[{"element.Emisor":{'$eq':"ppp"}}])
 
   def on_listarsalas(self):
-    print(len(chatrooms))
-    chatrooms_dict={}
-    for name, chatroom in chatrooms.items():
-      chatrooms_dict[name]=len(chatroom.clientes)
-    print(chatrooms_dict)
-    return chatrooms_dict
+    chatrooms={}
+    for sala in salas.find():
+      chatrooms[sala["Nombre"]]=sala["Usuarios"]
+    return json.dumps(chatrooms)
 
   def on_eliminarsala(self):
     username= sids[request.sid]
     current_room=self.findRoom(request.sid)
-    if chatrooms[current_room].creador==username:
-      self.on_salir(username)
+    usuario=usuarios.find_one({"Login":username})
+    if usuario["Sala_creada"]==current_room:
+      #self.on_salir(username)
       ret= self.deleteroom(current_room)
-      users[username].roomscreate.remove(current_room)
+      usuarios.update_one({"Login":username},{'$set':{'Sala_creada':""}})
       return ret
     else:
-      return "No tiene credenciales para eliminar esta sala"
+      return json.dumps("No tiene credenciales para eliminar esta sala")
 
   def deleteroom(self, current_room):
     print(current_room)
-    print(chatrooms[current_room].clientes)
-    for cliente in chatrooms[current_room].clientes:
-      print(cliente)
-      self.on_salir(cliente)
-    print("sala:) ",chatrooms[current_room].clientes)
-    chatrooms[current_room].clientes.clear()#Tal vez no sea necesario
-    del chatrooms[current_room]
+    clientes=usuarios.find_one({"Sala":current_room})
+    for cliente in clientes:
+      self.on_salir(cliente["Login"])
+    #print("sala:) ",chatrooms[current_room].clientes)
+    salas.delete_one({"Nombre":current_room})
     close_room(room=current_room)
-    return "Sala eliminada exitosamente"
+    return json.dumps("Sala eliminada exitosamente")
 
 sio.on_namespace(Servidor())
 if __name__ == '__main__':
   print("server1")
-  sio.run(app, host='192.168.43.34',port=3000)  
+  sio.run(app, host='192.168.0.13',port=8000)  
   print("server")
