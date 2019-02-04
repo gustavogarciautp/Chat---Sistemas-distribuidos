@@ -21,6 +21,7 @@ class usuario():
   		self.conexion=conn
   		self.login=login
   		self.sala=sala
+  		self.salas_creadas=[]
 
   		thread_send = threading.Thread(target=self.send)
   		thread_send.daemon = True
@@ -49,7 +50,10 @@ class usuario():
   				elif data["Tipo"]=="#lR":
   					self.listarsalas()
   				else:# data["Tipo"]=="#dR":
-  					self.eliminarsala()
+  					room= self.sala
+  				if chatrooms[room].creador==self.login:
+  					self.salir()
+  					self.eliminarsala(room)
   			except:
   				pass
 
@@ -70,6 +74,7 @@ class usuario():
   		#if isinstance(chatroom,bool):
   		if not chatroom:
   			chatroom=sala(self.login)
+  			self.salas_creadas.append(nombreSala)
   			chatrooms[nombreSala]=chatroom
   			self.entrarsala(nombreSala)
   			conexion.send(json.dumps("Se ha creado la sala").encode())
@@ -88,13 +93,15 @@ class usuario():
   	def salir(self):
   		if self.sala!="Default":
   			chatrooms[self.sala].remove_users(self.login)
-  			self.eliminarsala()
+  			#self.eliminarsala()
   			self.sala="Default"
   			chatrooms[self.sala].add_users(self.login)
 
   	def desconectar(self):
   		chatrooms[self.sala].clientes.remove(self.login)
-  		self.eliminarsala()
+  		for room in self.salas_creadas:
+  			self.eliminarsala(room)
+  		self.salas_creadas.clear()
   		del users[self.login]
   		self.conexion.send(json.dumps("exit").encode())
   		self.conexion.close()
@@ -121,13 +128,12 @@ class usuario():
   			chatrooms_dict[name]=len(chatroom.clientes)
   		self.conexion.send(json.dumps(chatrooms_dict).encode())
 
-  	def eliminarsala(self):
-  		current_room=self.sala
-  		if chatrooms[current_room].creador==self.login:
-  			for cliente in chatrooms[current_room].clientes:
-  				users[cliente].salir()
-  			chatrooms[current_room].clientes.clear()#Tal vez no sea necesario
-  			del chatrooms[current_room]
+  	def eliminarsala(self,current_room):
+  		#current_room=self.sala
+  		for cliente in chatrooms[current_room].clientes:
+  			users[cliente].salir()
+  		chatrooms[current_room].clientes.clear()#Tal vez no sea necesario
+  		del chatrooms[current_room]
   		#else:
   		#	self.conexion.send(json.dumps("Operacion no permitida").encode())
     
@@ -156,7 +162,7 @@ class Servidor():
 
 		self.conexiones = []   
 		self.s = socket.socket()
-		self.s.bind(("localhost", 8000))  #ip 10.253.15.3
+		self.s.bind(("192.168.0.13", 3000))  #ip 10.253.15.3
 		self.s.listen(2)
 		self.s.setblocking(False)
 
@@ -179,7 +185,10 @@ class Servidor():
 		while True:
 			for c in self.conexiones:
 				try:
-					data = json.loads(c.recv(1024).decode('utf-8'))
+					data = c.recv(1024).decode('utf-8')
+					print(data)
+					a="frfr"
+					c.send(a.encode())
 					if data["Tipo"]=="Registrarse":
 						print("resgistro")
 						del data["Tipo"]
