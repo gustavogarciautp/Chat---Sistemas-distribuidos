@@ -25,6 +25,12 @@ class Window(Tk):
 			os.remove('ip.binary')
 		self.quit()
 
+class SubWindow(Toplevel):
+	def __init__(self, title):
+		super().__init__()
+		self.title(title)
+		self.config(bg = AZUL_OSCURO)
+
 
 class AppFrame(Frame):
 	def __init__(self, window, w, h, bg, side):

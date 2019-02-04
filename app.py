@@ -26,18 +26,26 @@ def new_message(data):
 	This function recieve the new message and put it in the room
 	'''
 	data = json.loads(data)
-	text = list(data.keys())[0] + '\n' + list(data.values())[0]
-	new_message = Message(messages, text=data, width = ANCHO * 0.4)
+	user = list(data.keys())[0]
+	message = list(data.values())[0]
+	text = user + '\n' + message
+	new_message = Message(messages, text=text, width = ANCHO * 0.4)
 	new_message.pack(anchor = W, pady = (10, 10), padx = (20, 0))
 	window.update()
-	print('hola aquí estoy')
+	window.update()
+	container_messages.config(scrollregion = container_messages.bbox('all'))
+	container_messages.yview_moveto(1.0)
+	print(new_message)
 
 
 def listener():
+	'''
+	Creates the listener for the messages in the room
+	'''
 	while True:
 		client.socketIO.wait(seconds=1)
 
-mensajes_sala = threading.Thread(target = listener)
+mensajes_sala = threading.Thread(target = listener)  # Thread for the listener
 mensajes_sala.daemon = True
 mensajes_sala.start()
 client.socketIO.on('recv_message', new_message)  # Listening for the new messages
@@ -66,9 +74,26 @@ def send_message():
 		container_messages.config(scrollregion = container_messages.bbox('all'))
 		container_messages.yview_moveto(1.0)
 
+def private_message():
+	window = SubWindow('Mensaje Privado')
+
+	varUsername = StringVar()
+	varMessage = StringVar()
+
+	username = AppEntry(window, 'Para', BLANCO, varUsername)
+	message = AppEntry(window, 'Mensaje', BLANCO, varMessage)
+	button = AppButton(window, 'Enviar')
+
+	username.pack(expand = True)
+	messages.pack(expand = True)
+	button.pack(expand = True)
+
+	window.mainloop()
+
+
 # Definition of the main window and the frame containers of the app
 
-window = Window('titulo')
+window = Window('CChatRoom')
 headFrame = AppFrame(window=window, w=ANCHO*0.3, h=ALTO, 
 	bg=AZUL_CLARO, side=LEFT)
 bodyFrame = AppFrame(window=window, w=ANCHO*0.7, h=ALTO,
@@ -93,7 +118,7 @@ menu.add_command(label = "salir de sala", command = window.destroy)
 menu.add_command(label = "salas disponibles", command = window.destroy)
 menu.add_command(label = "eliminar sala", command = window.destroy)
 menu.add_command(label = "usuarios", command = window.destroy)
-menu.add_command(label = "mensaje privado", command = window.destroy)
+menu.add_command(label = "mensaje privado", command = private_message)
 menu.add_command(label = "salir", command = window.destroy)
 
 

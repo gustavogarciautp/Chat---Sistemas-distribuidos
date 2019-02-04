@@ -96,7 +96,7 @@ def send_data():
 
 # Definition of the main window and the frame containers of the app
 
-window = Window('titulo')
+window = Window('ChatRoom')
 headFrame = AppFrame(window=window, w=ANCHO*0.4, h=ALTO, 
 	bg=AZUL_CLARO, side=LEFT)
 bodyFrame = AppFrame(window=window, w=ANCHO*0.6, h=ALTO,

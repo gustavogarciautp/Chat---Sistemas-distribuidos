@@ -49,7 +49,7 @@ def send_data():
 
 # Definition of the main window and the frame containers of the app
 
-window = Window('titulo')
+window = Window('ChatRoom')
 headFrame = AppFrame(window=window, w=ANCHO*0.4, h=ALTO, 
 	bg=AZUL_CLARO, side=LEFT)
 bodyFrame = AppFrame(window=window, w=ANCHO*0.6, h=ALTO,
@@ -73,14 +73,6 @@ varPassword = StringVar()
 # Creating and placing the entries for the login
 
 username = AppEntry(bodyFrame, 'usuario', AZUL_OSCURO, varUsername)
-'''username.delete('0', 'end')
-# Setting the default username for this client
-with open('data.binary', 'rb') as file:
-	unpickler = pickle.Unpickler(file)
-	data = unpickler.load()
-	name = data['login']
-varUsername.set(name)
-username['state'] = "readonly"'''
 username.pack(pady=(40, 0))
 
 password = AppEntry(bodyFrame, 'contraseña', AZUL_OSCURO, 
