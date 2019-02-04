@@ -24,6 +24,9 @@ class Cliente():
         self.socketIO.wait(seconds=1)
         return self.errors
 
+    def send_message(self, data):
+        self.socketIO.emit('mensaje', data)
+
     def crearsala(self):
         nombreSala=input("Nombre de la sala: ")
         socketIO.emit('crearsala',nombreSala,imprimir)

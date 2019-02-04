@@ -68,16 +68,6 @@ def validate_fields(event):
 		send_data()
 
 
-def create_file():
-	''' Function to create the data file for the sesion '''
-
-	data = {
-	'login':varUsername.get()
-	}
-	with open('data.binary', 'wb') as file:
-		pickle.dump(data, file)
-		file.close()
-
 def send_data():
 	''' Function to send the json file to the server '''
 
@@ -96,7 +86,6 @@ def send_data():
 		username.delete('0', 'end')
 		username.put_placeholder()
 	else:
-		create_file()
 		window.quit()
 		import subprocess
 		program = subprocess.Popen('python3 login.py', 

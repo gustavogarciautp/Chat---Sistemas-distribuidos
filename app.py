@@ -5,8 +5,42 @@ from PIL import Image
 from PIL import ImageTk
 import json
 import re
-from cliente import *
+from chatroom import *
+import threading
 
+
+# Load the username
+
+with open('data.binary', 'rb') as file:
+	unpickler = pickle.Unpickler(file)
+	data = unpickler.load()
+	username = data['login']
+	password = data['password']
+result = client.startsession(json.dumps({'Login':username, 
+	'Password':password}, ensure_ascii = False))
+print(result)
+
+
+def new_message(data):
+	'''
+	This function recieve the new message and put it in the room
+	'''
+	data = json.loads(data)
+	text = list(data.keys())[0] + '\n' + list(data.values())[0]
+	new_message = Message(messages, text=data, width = ANCHO * 0.4)
+	new_message.pack(anchor = W, pady = (10, 10), padx = (20, 0))
+	window.update()
+	print('hola aquí estoy')
+
+
+def listener():
+	while True:
+		client.socketIO.wait(seconds=1)
+
+mensajes_sala = threading.Thread(target = listener)
+mensajes_sala.daemon = True
+mensajes_sala.start()
+client.socketIO.on('recv_message', new_message)  # Listening for the new messages
 
 
 def up_mouse_wheel(event):
@@ -21,7 +55,9 @@ def bind_send_message(event):
 def send_message():
 	if (message.get() != text_box.placeholder) and (
 		message.get() != ''):
-		new_message = Message(messages, text=message.get(), width = ANCHO * 0.4)
+		data = message.get()
+		new_message = Message(messages, text=data, width = ANCHO * 0.4)
+		client.send_message(json.dumps(data, ensure_ascii = False))
 		new_message.pack(anchor = E, pady = (10, 10), padx = (0, 20))
 		text_box.delete(0, 'end')  # Clean the text box for write again
 
@@ -40,7 +76,7 @@ bodyFrame = AppFrame(window=window, w=ANCHO*0.7, h=ALTO,
 
 # Charging a placing the logo image of the app
 
-image = Image.open('logo/logo.png')
+image = Image.open('logo/logo2.png')
 image = image.resize((80, 80))
 logo = ImageTk.PhotoImage(image)
 label_logo = Label(headFrame, image = logo)

@@ -6,6 +6,7 @@ from PIL import ImageTk
 from chatroom import *
 
 
+
 def validate_fields(event):
 	''' Function to validate the entries of the user '''
 	
@@ -14,6 +15,17 @@ def validate_fields(event):
 		messagebox.showerror("error", error)
 	else:
 		send_data()
+
+def create_file():
+	''' Function to create the data file for the sesion '''
+
+	data = {
+	'login':varUsername.get(),
+	'password': varPassword.get()
+	}
+	with open('data.binary', 'wb') as file:
+		pickle.dump(data, file)
+		file.close()
 
 def send_data():
 	''' Function to send the json file to the server '''
@@ -29,10 +41,10 @@ def send_data():
 		password.delete('0', 'end')
 		password.put_placeholder()
 	else:
+		create_file()
 		window.quit()
 		import subprocess
-		program = subprocess.Popen('python3 app.py', 
-			stdout=subprocess.PIPE, shell=True)
+		program = subprocess.Popen('python3 app.py', shell = True)
 
 
 # Definition of the main window and the frame containers of the app
@@ -61,14 +73,14 @@ varPassword = StringVar()
 # Creating and placing the entries for the login
 
 username = AppEntry(bodyFrame, 'usuario', AZUL_OSCURO, varUsername)
-username.delete('0', 'end')
+'''username.delete('0', 'end')
 # Setting the default username for this client
 with open('data.binary', 'rb') as file:
 	unpickler = pickle.Unpickler(file)
 	data = unpickler.load()
 	name = data['login']
 varUsername.set(name)
-username['state'] = "readonly"
+username['state'] = "readonly"'''
 username.pack(pady=(40, 0))
 
 password = AppEntry(bodyFrame, 'contraseña', AZUL_OSCURO, 
