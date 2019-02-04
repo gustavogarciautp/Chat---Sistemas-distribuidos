@@ -43,7 +43,9 @@ class Servidor(Namespace):
   """docstring for Servidor"""
   def __init__(self):
     Namespace.__init__(self,'/')
-    salas.insert_one({"Nombre":"Default", "Mensajes":[], "Usuarios":0})
+    sala=salas.find_one({"Nombre":"Default"})
+    if not sala:
+      salas.insert_one({"Nombre":"Default", "Mensajes":[], "Usuarios":0})
     print("server")
     
   def on_connect(self):
@@ -52,6 +54,7 @@ class Servidor(Namespace):
     #emit('conectado', 'r')
 
   def on_Registrarse(self,data):
+    print(type(data))
     data= json.loads(data)
     campo_login=usuarios.find_one({"Login":data["Login"]})
     if campo_login:
@@ -103,12 +106,15 @@ class Servidor(Namespace):
 
   #Data es un string
   def on_mensaje(self,data):
+    data2={}
+    #print(sids)
+    print(data)
     data=json.loads(data)
     user= sids[request.sid]
     room= self.findRoom(request.sid)
     data2[user]= data#data.update({"Emisor":user})
     salas.update_one({"Nombre":room},{'$push':{"Mensajes": data2}})
-    sio.emit('Mensaje',json.dumps(data2),room=room)
+    emit('recv_message',json.dumps(data2),room=room)
 
   def on_crearsala(self,nombreSala):
     nameRoom=json.loads(nombreSala)
@@ -140,7 +146,7 @@ class Servidor(Namespace):
     salas.update_one({"Nombre": chatroom}, {'$inc': {'Usuarios': -1}})
     usuarios.update_one({"Login":username},{'$set':{"Sala":nombreSala}})
     leave_room(room=chatroom)
-    sala=salas.update_one_and_update({"Nombre":nombreSala}, {'$inc': {'Usuarios':1}})
+    sala=salas.find_one_and_update({"Nombre":nombreSala}, {'$inc': {'Usuarios':1}})
     join_room(room=nombreSala)
     if len(sala["Mensajes"])>0:
       return json.dumps(sala["Mensajes"])
@@ -236,16 +242,17 @@ class Servidor(Namespace):
 
   def deleteroom(self, current_room):
     print(current_room)
-    clientes=usuarios.find_one({"Sala":current_room})
-    for cliente in clientes:
-      self.on_salir(cliente["Login"])
-    #print("sala:) ",chatrooms[current_room].clientes)
-    salas.delete_one({"Nombre":current_room})
-    close_room(room=current_room)
-    return json.dumps("Sala eliminada exitosamente")
+    if current_room:
+      clientes=usuarios.find_one({"Sala":current_room})
+      for cliente in clientes:
+        self.on_salir(cliente["Login"])
+      #print("sala:) ",chatrooms[current_room].clientes)
+      salas.delete_one({"Nombre":current_room})
+      close_room(room=current_room)
+      return json.dumps("Sala eliminada exitosamente")
 
 sio.on_namespace(Servidor())
 if __name__ == '__main__':
   print("server1")
-  sio.run(app, host='192.168.0.13',port=8000)  
+  sio.run(app, host='10.253.0.108',port=8000)  
   print("server")
