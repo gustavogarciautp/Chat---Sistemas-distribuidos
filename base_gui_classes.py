@@ -30,6 +30,7 @@ class SubWindow(Toplevel):
 		super().__init__()
 		self.title(title)
 		self.config(bg = AZUL_OSCURO)
+		self.geometry('%dx%d' % (ANCHO*0.8, ALTO*0.7))
 
 
 class AppFrame(Frame):

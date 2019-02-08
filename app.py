@@ -18,8 +18,110 @@ with open('data.binary', 'rb') as file:
 	password = data['password']
 result = client.startsession(json.dumps({'Login':username, 
 	'Password':password}, ensure_ascii = False))
-print(result)
 
+
+def available_rooms():
+	'''
+	Creates the interface to view the available rooms
+	'''
+	rooms = client.listarsalas()
+	rooms = json.loads(rooms)
+
+	window = SubWindow('Salas disponibles')
+	aux_frame = Frame(window)
+
+	vbar = Scrollbar(aux_frame)
+	list_rooms = Listbox(aux_frame, yscrollcommand = vbar.set)
+	vbar.config(command = list_rooms.yview)
+
+	for room, users in zip(rooms.keys(), rooms.values()):
+		item = room + ' (' + str(users) + ')'
+		list_rooms.insert('end', item)
+
+	aux_frame.pack(expand = True)
+	vbar.pack(side = RIGHT, fill=Y)
+	list_rooms.pack(side = LEFT, fill = BOTH)
+
+	window.mainloop()
+
+def create_room():
+	'''
+	Creates the interface to create a new room
+	'''
+
+	def send():
+		room = varName.get()
+		data = json.dumps(room, ensure_ascii = False)
+		result = client.crearsala(data)
+
+		if json.loads(result):
+			messagebox.showerror("error", result, parent = subWindow)
+			name.delete('0', 'end')
+			name.put_placeholder()
+		else:
+			subWindow.destroy()
+			room_name['text'] = room
+			window.update()
+			return
+
+
+	subWindow = SubWindow('Crear Sala')
+
+	varName = StringVar()
+
+	name = AppEntry(subWindow, 'Nombre de la sala', AZUL_OSCURO, varName)
+	button = AppButton(subWindow, 'Enviar')
+	button['command'] = send
+
+	name.pack(expand = True)
+	button.pack(expand = True)
+
+	subWindow.mainloop()
+
+def enter_to_room():
+	'''
+	Creates the interface to enter at one room
+	'''
+	def get_in_room():
+		room = name_room.get()
+		print(room)
+		room = json.dumps(room, ensure_ascii = False)
+		client.entrarsala(room)
+		
+		room_name['text'] = room
+		subWindow.destroy()
+		window.update()
+
+	rooms = client.listarsalas()
+	rooms = json.loads(rooms)
+	rooms = list(rooms.keys())
+
+	name_room = StringVar()
+
+	subWindow = SubWindow('Entrar a una sala')
+	aux_frame = Frame(subWindow)
+
+	vbar = Scrollbar(aux_frame)
+	list_rooms = Listbox(aux_frame, listvariable = name_room, 
+		yscrollcommand = vbar.set)
+	vbar.config(command = list_rooms.yview)
+
+	get_in = AppButton(subWindow, 'Entrar')
+
+	for room in rooms:
+		list_rooms.insert('end', room)
+
+	aux_frame.pack(expand = True)
+	vbar.pack(side = RIGHT, fill=Y)
+	list_rooms.pack(side = LEFT, fill = BOTH)
+	get_in.pack(side = RIGHT, expand = True, padx = (0, 30))
+
+	subWindow.mainloop()
+
+def exit_room():
+	client.salirsala()
+	room_name['text'] = 'sala principal'
+	window.update()
 
 def new_message(data):
 	'''
@@ -37,6 +139,39 @@ def new_message(data):
 	container_messages.yview_moveto(1.0)
 	print(new_message)
 
+def new_private(data):
+	data = json.loads(data)
+	user = list(data.values())[1]
+	msg = list(data.values())[0]
+	private_message.config(image = private_message.images[1], 
+		bg = VERDE)
+
+
+	if not os.path.exists('private_msgs.txt'):
+		chats = {user:[msg]}
+		chats = json.dumps(chats, ensure_ascii = False)
+	else:
+		with open('private_msgs.txt', 'r') as file:
+			chats = json.load(file)
+			if user in chats.keys():
+				chats[user].append(msg)
+			else:
+				chats[user] = [msg]
+			chats = json.dumps(chats, ensure_ascii = False)
+
+	with open('private_msgs.txt', 'w') as file:
+		file.write(chats)
+
+def load_private_msgs():
+	with open('private_msgs.txt') as file:
+		data = json.load(file)
+
+	print(data)
+	
+	window = SubWindow('Mensajes')
+
+	window.mainloop()
+
 
 def listener():
 	'''
@@ -49,6 +184,7 @@ mensajes_sala = threading.Thread(target = listener)  # Thread for the listener
 mensajes_sala.daemon = True
 mensajes_sala.start()
 client.socketIO.on('recv_message', new_message)  # Listening for the new messages
+client.socketIO.on('recv_private', new_private)
 
 
 def up_mouse_wheel(event):
@@ -75,25 +211,43 @@ def send_message():
 		container_messages.yview_moveto(1.0)
 
 def private_message():
+	'''
+	Creates the interface for send the
+	'''
+
+	def send():
+		dest = varUsername.get()
+		msg = varMessage.get()
+		data = {'Receptor':dest, 'Mensaje':msg}
+		data = json.dumps(data, ensure_ascii = False)
+		client.msgprivado(data)
+		window.destroy()
+		return
+
 	window = SubWindow('Mensaje Privado')
 
 	varUsername = StringVar()
 	varMessage = StringVar()
 
-	username = AppEntry(window, 'Para', BLANCO, varUsername)
-	message = AppEntry(window, 'Mensaje', BLANCO, varMessage)
+	username = AppEntry(window, 'Para', AZUL_OSCURO, varUsername)
+	message = AppEntry(window, 'Mensaje', AZUL_OSCURO, varMessage)
 	button = AppButton(window, 'Enviar')
+	button['command'] = send
 
 	username.pack(expand = True)
-	messages.pack(expand = True)
+	message.pack(expand = True)
 	button.pack(expand = True)
 
 	window.mainloop()
 
+def show_users():
+	users = client.showusers()
+	print(users)
+
 
 # Definition of the main window and the frame containers of the app
 
-window = Window('CChatRoom')
+window = Window('ChatRoom')
 headFrame = AppFrame(window=window, w=ANCHO*0.3, h=ALTO, 
 	bg=AZUL_CLARO, side=LEFT)
 bodyFrame = AppFrame(window=window, w=ANCHO*0.7, h=ALTO,
@@ -112,12 +266,12 @@ label_logo.pack(side = BOTTOM, padx = 10, pady = 20)
 # Main menu for the app
 
 menu = AppMenu(headFrame)
-menu.add_command(label = "crear sala", command = window.destroy)
-menu.add_command(label = "entrar a sala", command = window.destroy)
-menu.add_command(label = "salir de sala", command = window.destroy)
-menu.add_command(label = "salas disponibles", command = window.destroy)
+menu.add_command(label = "crear sala", command = create_room)
+menu.add_command(label = "entrar a sala", command = enter_to_room)
+menu.add_command(label = "salir de sala", command = exit_room)
+menu.add_command(label = "salas disponibles", command = available_rooms)
 menu.add_command(label = "eliminar sala", command = window.destroy)
-menu.add_command(label = "usuarios", command = window.destroy)
+menu.add_command(label = "usuarios", command = show_users)
 menu.add_command(label = "mensaje privado", command = private_message)
 menu.add_command(label = "salir", command = window.destroy)
 
@@ -148,10 +302,15 @@ frame_pm['width'] = ANCHO*0.7*0.2
 frame_pm['height'] = 40
 frame_pm.pack(side = RIGHT, fill = X, expand = True)
 
-image = Image.open('messages/logo_gris.png')
-image = image.resize((40, 34))
-logo_pm = ImageTk.PhotoImage(image)
-private_message = Button(frame_pm, image=logo_pm)
+not_recieved = Image.open('messages/logo_gris.png')
+not_recieved = not_recieved.resize((40, 34))
+recieved = Image.open('messages/logo_negro.png')
+recieved = recieved.resize((40, 34))
+not_recieved = ImageTk.PhotoImage(not_recieved)
+recieved = ImageTk.PhotoImage(recieved)
+private_message = Button(frame_pm, command = load_private_msgs)
+private_message.images = [not_recieved, recieved]
+private_message.config(image = private_message.images[0])
 private_message.pack(fill = BOTH, expand = True)
 
 
@@ -196,8 +355,6 @@ vbar = Scrollbar(bodyFrame)  # Scrollbar to handle the scroll over the messages
 container_messages = Canvas(bodyFrame, 
 	yscrollcommand = vbar.set)  # To bind and allow the scrolling
 container_messages['bg'] = container_messages.master['bg']
-down = lambda event: print ('down')
-up = lambda event: print('up')
 container_messages.bind_all('<Button-5>', down_mouse_wheel)
 container_messages.bind_all('<Button-4>', up_mouse_wheel)
 

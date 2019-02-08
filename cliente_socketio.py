@@ -27,38 +27,41 @@ class Cliente():
     def send_message(self, data):
         self.socketIO.emit('mensaje', data)
 
-    def crearsala(self):
-        nombreSala=input("Nombre de la sala: ")
-        socketIO.emit('crearsala',nombreSala,imprimir)
-        #socketIO.wait(seconds=1)
+    def crearsala(self, data):
+        self.socketIO.emit('crearsala', data, self.register_errors)
+        self.socketIO.wait(seconds=1)
+        return self.errors
 
-    def entrarsala(self):
-        nombreSala=input("Nombre de la sala: ")
-        socketIO.emit('entrarsala',nombreSala,imprimir)
-        #socketIO.wait(seconds=1)
+    def entrarsala(self, data):
+        socketIO.emit('entrarsala', data)
 
     def salirsala(self):
         socketIO.emit('salir')
         #socketIO.wait(seconds=1)
 
-    def msgprivado(self):
-        r=input("Destinatario: ")
-        msg=input("Mensaje: ")
-        cad={"Receptor":r,"Mensaje":msg}
-        socketIO.emit('private',cad)
-        #socketIO.wait(seconds=1)
+    def msgprivado(self, data):
+        self.socketIO.emit('private', data)
 
     def exit(self):
-        socketIO.emit('desconectar')
-        #socketIO.wait(seconds=1)
+        self.socketIO.emit('desconectar')
 
     def showusers(self):
-        socketIO.emit('show_users',imprimir)
-        #socketIO.wait(seconds=1)
+        '''
+        Here is used the self.register_errors to obtain 
+        the list of users but not for register errors
+        '''
+        self.socketIO.emit('show_users', self.register_errors)
+        self.socketIO.wait(seconds=1)
+        return self.errors
 
     def listarsalas(self):
-        socketIO.emit('listarsalas',imprimir)
-        #socketIO.wait(seconds=1)
+        '''
+        This functions returns the available rooms with the help of the method register errors.
+        Do not return errors
+        '''
+        self.socketIO.emit('listarsalas', self.register_errors)
+        self.socketIO.wait(seconds=1)
+        return self.errors
 
     def eliminarsala(self):
         socketIO.emit('eliminarsala',imprimir)
