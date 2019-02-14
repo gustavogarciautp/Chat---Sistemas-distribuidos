@@ -78,35 +78,42 @@ def create_room():
 
 	subWindow.mainloop()
 
+def eliminate_room():
+	errors = client.eliminarsala()
+	errors = json.loads(errors)
+	if errors:
+		messagebox.showerror('error', errors)
+	else:
+		room_name['text'] = 'sala principal'
+
 def enter_to_room():
 	'''
 	Creates the interface to enter at one room
 	'''
 	def get_in_room():
-		room = name_room.get()
-		print(room)
+		room = list_rooms.get(list_rooms.curselection())
 		room = json.dumps(room, ensure_ascii = False)
 		client.entrarsala(room)
 		
-		room_name['text'] = room
+		room_name['text'] = room[1:-1]
 		subWindow.destroy()
 		window.update()
+		return
 
 	rooms = client.listarsalas()
 	rooms = json.loads(rooms)
 	rooms = list(rooms.keys())
 
-	name_room = StringVar()
 
 	subWindow = SubWindow('Entrar a una sala')
 	aux_frame = Frame(subWindow)
 
 	vbar = Scrollbar(aux_frame)
-	list_rooms = Listbox(aux_frame, listvariable = name_room, 
-		yscrollcommand = vbar.set)
+	list_rooms = Listbox(aux_frame, yscrollcommand = vbar.set)
 	vbar.config(command = list_rooms.yview)
 
 	get_in = AppButton(subWindow, 'Entrar')
+	get_in['command'] = get_in_room
 
 	for room in rooms:
 		list_rooms.insert('end', room)
@@ -270,7 +277,7 @@ menu.add_command(label = "crear sala", command = create_room)
 menu.add_command(label = "entrar a sala", command = enter_to_room)
 menu.add_command(label = "salir de sala", command = exit_room)
 menu.add_command(label = "salas disponibles", command = available_rooms)
-menu.add_command(label = "eliminar sala", command = window.destroy)
+menu.add_command(label = "eliminar sala", command = eliminate_room)
 menu.add_command(label = "usuarios", command = show_users)
 menu.add_command(label = "mensaje privado", command = private_message)
 menu.add_command(label = "salir", command = window.destroy)

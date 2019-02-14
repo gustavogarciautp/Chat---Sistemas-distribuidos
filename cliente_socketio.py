@@ -33,11 +33,10 @@ class Cliente():
         return self.errors
 
     def entrarsala(self, data):
-        socketIO.emit('entrarsala', data)
+        self.socketIO.emit('entrarsala', data)
 
     def salirsala(self):
-        socketIO.emit('salir')
-        #socketIO.wait(seconds=1)
+        self.socketIO.emit('salir')
 
     def msgprivado(self, data):
         self.socketIO.emit('private', data)
@@ -64,5 +63,5 @@ class Cliente():
         return self.errors
 
     def eliminarsala(self):
-        socketIO.emit('eliminarsala',imprimir)
-        #socketIO.wait(seconds=1)
+        self.socketIO.emit('eliminarsala', self.register_errors)
+        return self.errors
