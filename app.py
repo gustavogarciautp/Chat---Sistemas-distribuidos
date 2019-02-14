@@ -187,11 +187,23 @@ def listener():
 	while True:
 		client.socketIO.wait(seconds=1)
 
+
+def deleted_room(data):
+	'''
+	Function to display the message of deleted room
+	when the original user that created the room decide to eliminate it.
+	'''
+	data = json.loads(data)
+	messagebox.showerror('Sala eliminada', data)
+	room_name['text'] = 'sala principal'
+	window.update()
+
 mensajes_sala = threading.Thread(target = listener)  # Thread for the listener
 mensajes_sala.daemon = True
 mensajes_sala.start()
 client.socketIO.on('recv_message', new_message)  # Listening for the new messages
 client.socketIO.on('recv_private', new_private)
+client.socketIO.on('salir', deleted_room)
 
 
 def up_mouse_wheel(event):

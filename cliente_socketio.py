@@ -64,4 +64,5 @@ class Cliente():
 
     def eliminarsala(self):
         self.socketIO.emit('eliminarsala', self.register_errors)
+        self.socketIO.wait(seconds=1)
         return self.errors
