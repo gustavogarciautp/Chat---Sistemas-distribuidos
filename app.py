@@ -261,7 +261,23 @@ def private_message():
 
 def show_users():
 	users = client.showusers()
-	print(users)
+	users = json.loads(users)
+
+	window = SubWindow('Salas disponibles')
+	aux_frame = Frame(window)
+
+	vbar = Scrollbar(aux_frame)
+	list_rooms = Listbox(aux_frame, yscrollcommand = vbar.set)
+	vbar.config(command = list_rooms.yview)
+
+	for user in users:
+		list_rooms.insert('end', user)
+
+	aux_frame.pack(expand = True)
+	vbar.pack(side = RIGHT, fill=Y)
+	list_rooms.pack(side = LEFT, fill = BOTH)
+
+	window.mainloop()
 
 
 # Definition of the main window and the frame containers of the app

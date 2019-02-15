@@ -18,9 +18,5 @@ if __name__ == '__main__':
 	with open('ip.binary', 'wb') as ip:
 		pickle.dump(ip_server, ip)
 
-	# Opens the login or the register
-
-	if os.path.exists('data.binary'):
-		from login import *
-	else:
-		from singup import *
+	# Opens the application
+	from signup import *

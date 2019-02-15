@@ -13,6 +13,15 @@ re_name = r'\b[a-zA-ZÑñ]+'
 re_username = r'^[a-zA-Z][a-zA-Z0-9_.-]+$'
 re_age = r'^[1-9][0-9]?$'
 
+def change_login(event):
+	'''
+	Function to change to the login window
+	'''
+	window.quit()
+	import subprocess
+	program = subprocess.Popen('python3 login.py', 
+		stdout=subprocess.PIPE, shell=True)
+
 def validate_fields(event):
 	''' Function to validate the entries of the user '''
 
@@ -151,6 +160,13 @@ gender.pack(expand = True)
 buttonContinue = AppButton(bodyFrame, 'continuar')
 buttonContinue.pack(side = RIGHT, pady = 50, padx = 50)
 buttonContinue.bind("<Button-1>", validate_fields)
+
+
+#Button for can change to the login window
+buttonLogin = AppButton(bodyFrame, 'iniciar sesión')
+buttonLogin.config(width = 18)
+buttonLogin.pack(side = LEFT, pady = 60, padx = 10)
+buttonLogin.bind('<Button-1>', change_login)
 
 # Setting the hover message for the entry password
 password.put_msg()
