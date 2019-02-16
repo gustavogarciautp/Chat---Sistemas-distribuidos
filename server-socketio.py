@@ -232,9 +232,7 @@ class Servidor(Namespace):
       usuarios.update_one({"Login":username},{'$push':{"Mensajes_viejos."+data:{'$each':message}}})
     else:
       usuarios.update_one({"Login":username},{'$set':{"Mensajes_viejos."+data:message}})
-    usuarios.update_one({"Login":username},{'$pull':{"Mensajes_nuevos":message}})
-
-    #usuarios.update_one({"Login":"cr7"},{'$unset':{"Mensajes_nuevos.$[element].Emisor":""}},upsert=True,array_filters=[{"element.Emisor":{'$eq':"ppp"}}])
+    usuarios.update_one({"Login":username},{'$pull':{"Mensajes_nuevos."+data:message}})
 
   def on_listarsalas(self):
     chatrooms={}
