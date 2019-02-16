@@ -66,3 +66,8 @@ class Cliente():
         self.socketIO.emit('eliminarsala', self.register_errors)
         self.socketIO.wait(seconds=1)
         return self.errors
+
+    def mensajesprivados(self):
+        self.socketIO.emit('mensajesprivados', self.register_errors)
+        self.socketIO.wait(seconds=1)
+        return self.errors

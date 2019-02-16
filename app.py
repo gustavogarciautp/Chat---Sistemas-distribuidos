@@ -19,6 +19,9 @@ with open('data.binary', 'rb') as file:
 result = client.startsession(json.dumps({'Login':username, 
 	'Password':password}, ensure_ascii = False))
 
+# Loads the private messages for the user
+private_messages = client.mensajesprivados()
+
 
 def available_rooms():
 	'''
@@ -169,11 +172,12 @@ def new_private(data):
 	with open('private_msgs.txt', 'w') as file:
 		file.write(chats)
 
-def load_private_msgs():
-	with open('private_msgs.txt') as file:
-		data = json.load(file)
+def load_private_msgs(msgs = None):
+	if not msgs:
+		with open('private_msgs.txt') as file:
+			data = json.load(msgs)
 
-	print(data)
+	print(msgs)
 	
 	window = SubWindow('Mensajes')
 
