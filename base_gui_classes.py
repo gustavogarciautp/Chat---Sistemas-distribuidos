@@ -23,7 +23,13 @@ class Window(Tk):
 		import os
 		if os.path.exists('ip.binary'):
 			os.remove('ip.binary')
-		self.quit()
+
+		if os.path.exists('data.binary'):
+			os.remove('data.binary')
+
+		if os.path.exists('private_msgs.txt'):
+			os.remove('private_msgs.txt')
+
 
 class SubWindow(Toplevel):
 	def __init__(self, title):
