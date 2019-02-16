@@ -166,6 +166,9 @@ class Servidor(Namespace):
       sid=request.sid
       user= sids[sid]
       room= self.findRoom(sid)
+      answer=json.loads(self.on_eliminarsala())
+      if not answer:
+        return
     else:
       sid=users[user]
     if room!="Default":
