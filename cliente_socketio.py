@@ -71,3 +71,9 @@ class Cliente():
         self.socketIO.emit('mensajesprivados', self.register_errors)
         self.socketIO.wait(seconds=1)
         return self.errors
+
+    def leerprivado(self, data):
+        '''
+        This functions indicates to the server that a private message was readed
+        '''
+        self.socketIO.emit('read_message', data)

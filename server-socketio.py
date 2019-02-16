@@ -276,5 +276,5 @@ class Servidor(Namespace):
 sio.on_namespace(Servidor())
 if __name__ == '__main__':
   print("server1")
-  sio.run(app, host='192.168.0.13',port=8000)  
+  sio.run(app, host='192.168.122.1',port=8000)  
   #print("server")

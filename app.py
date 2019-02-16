@@ -7,7 +7,7 @@ import json
 import re
 from chatroom import *
 import threading
-
+print('prueba')
 
 # Load the username
 
@@ -18,9 +18,6 @@ with open('data.binary', 'rb') as file:
 	password = data['password']
 result = client.startsession(json.dumps({'Login':username, 
 	'Password':password}, ensure_ascii = False))
-
-# Loads the private messages for the user
-private_messages = client.mensajesprivados()
 
 
 def available_rooms():
@@ -98,7 +95,8 @@ def enter_to_room():
 		room = json.dumps(room, ensure_ascii = False)
 		client.entrarsala(room)
 		
-		room_name['text'] = room[1:-1]
+		if room[1:-1] != 'Default':
+			room_name['text'] = room[1:-1]
 		subWindow.destroy()
 		window.update()
 		return
@@ -121,7 +119,7 @@ def enter_to_room():
 	for room in rooms:
 		list_rooms.insert('end', room)
 
-	aux_frame.pack(expand = True)
+	aux_frame.pack(side = LEFT, expand = True)
 	vbar.pack(side = RIGHT, fill=Y)
 	list_rooms.pack(side = LEFT, fill = BOTH)
 	get_in.pack(side = RIGHT, expand = True, padx = (0, 30))
@@ -147,7 +145,6 @@ def new_message(data):
 	window.update()
 	container_messages.config(scrollregion = container_messages.bbox('all'))
 	container_messages.yview_moveto(1.0)
-	print(new_message)
 
 def new_private(data):
 	data = json.loads(data)
@@ -155,31 +152,51 @@ def new_private(data):
 	msg = list(data.values())[0]
 	private_message.config(image = private_message.images[1], 
 		bg = VERDE)
+	save_private_msg(user, msg)
 
-
-	if not os.path.exists('private_msgs.txt'):
-		chats = {user:[msg]}
+def save_private_msg(user, msg):
+	with open('private_msgs.txt', 'r') as file:
+		chats = json.loads(file.read())
+		if user in chats.keys():
+			chats[user].append(msg)
+		else:
+			chats[user] = [msg]
 		chats = json.dumps(chats, ensure_ascii = False)
-	else:
-		with open('private_msgs.txt', 'r') as file:
-			chats = json.load(file)
-			if user in chats.keys():
-				chats[user].append(msg)
-			else:
-				chats[user] = [msg]
-			chats = json.dumps(chats, ensure_ascii = False)
 
 	with open('private_msgs.txt', 'w') as file:
 		file.write(chats)
 
-def load_private_msgs(msgs = None):
-	if not msgs:
-		with open('private_msgs.txt') as file:
-			data = json.load(msgs)
+def load_private_msgs():
+	with open('private_msgs.txt', 'r') as file:
+		chats = json.loads(file.read())
 
-	print(msgs)
+	def load_chat(event):
+		user = list_chats.get(list_chats.curselection())
+		
+		subWindow.destroy()
+		private_message.config(image = private_message.images[0], 
+			bg = BLANCO)
+		client.leerprivado(json.dumps(user, ensure_ascii = False))
+
+		private_chat = SubWindow(user)
+
+		# Loads the whole chat with the selected user
+
+		for message in chats[user]:
+			new_message = Message(private_chat, text=message, width = ANCHO * 0.6)
+			new_message.pack(anchor = W, pady = (10, 10), padx = (20, 0))
+
+		private_chat.mainloop()
 	
-	window = SubWindow('Mensajes')
+	subWindow = SubWindow('Mensajes')
+
+	list_chats = Listbox(subWindow)
+
+	for chat in list(chats.keys()):
+		list_chats.insert('end', chat)
+
+	list_chats.bind('<Double-Button-1>', load_chat)  # Link the mouse click to load the chat
+	list_chats.pack(expand = True)
 
 	window.mainloop()
 
@@ -408,6 +425,36 @@ messages.config(bg = messages.master['bg'],
 container_messages.pack(side = LEFT, fill = BOTH, expand = True)
 container_messages.create_window(0, 0, width = ANCHO * 0.7, 
 	window = messages, anchor = NE)  # Creates the window scrollable
+
+
+
+
+def create_private_msgs(msgs):
+	new_msgs = msgs['Nuevos']
+	old_msgs = msgs['Viejos']
+
+	if old_msgs != {}:
+		if new_msgs != {}:
+			for user in new_msgs.keys():
+				if user in old_msgs:
+					old_msgs[user] = old_msgs[user] + new_msgs[user]
+			chats = old_msgs
+			private_message.config(image = private_message.images[1], 
+				bg = VERDE)
+		else:
+			chats = old_msgs
+	else:
+		chats = {}
+
+	with open('private_msgs.txt', 'w') as file:
+		chats = json.dumps(chats, ensure_ascii = False)
+		file.write(chats)
+
+# Loads the private messages for the user
+
+private_messages = client.mensajesprivados()
+private_messages = json.loads(private_messages)
+create_private_msgs(private_messages)
 
 
 

@@ -44,7 +44,8 @@ def send_data():
 		create_file()
 		window.quit()
 		import subprocess
-		program = subprocess.Popen('python3 app.py', shell = True)
+		program = subprocess.Popen('python3 app.py', 
+			stdout=subprocess.PIPE, shell = True)
 
 
 # Definition of the main window and the frame containers of the app
