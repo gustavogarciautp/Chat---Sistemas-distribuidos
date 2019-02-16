@@ -51,7 +51,6 @@ class Servidor(Namespace):
     
   def on_connect(self):
     print('connect ', request.sid)
-    print(type(request.sid))
     #emit('conectado', 'r')
 
   def on_Registrarse(self,data):
@@ -62,14 +61,15 @@ class Servidor(Namespace):
       return json.dumps("El nombre de usuario ya existe")
     else:
       data["Password"]=hashlib.sha1(data["Password"].encode()).hexdigest()
-      data["Mensajes_nuevos"]=[]
-      data["Mensajes_viejos"]=[]
+      data["Mensajes_nuevos"]={}
+      data["Mensajes_viejos"]={}
       data["Sala_creada"]=""
-      data["Sala"]=""
+      data["Sala"]=""    
       usuarios.insert_one(data)
       return json.dumps("")
 
   def on_startsession(self,data):
+    print(data)
     data= json.loads(data)
 
     #Verificar que no hayan usuarios con el mismo Username
@@ -83,20 +83,18 @@ class Servidor(Namespace):
       room=self.findRoom(request.sid)
       usuarios.update_one(campo, {"$set": {"Sala":room}})
 
-      sala= salas.find_one_and_update({"Nombre": "Default"}, {'$inc': {'Usuarios': 1}})
-
-      #if len(sala["Mensajes"])>0:
-      #  emit('Mensaje',json.dumps(sala["Mensajes"]))
-
-      if len(campo["Mensajes_viejos"])>0:
-        emit("PrivateOld", json.dumps(campo["Mensajes_viejos"]))
-
-      if len(campo["Mensajes_nuevos"])>0:
-        emit("PrivateNew", json.dumps(campo["Mensajes_nuevos"]))
-      
+      sala= salas.find_one_and_update({"Nombre": "Default"}, {'$inc': {'Usuarios': 1}})      
       return json.dumps("")
     else:
       return json.dumps("El nombre de usuario y contraseña no coinciden", ensure_ascii=False)
+
+  def on_mensajesprivados(self):
+    mensajes={}
+    user=sids[request.sid]
+    campo=usuarios.find_one({"Login":user})
+    mensajes["Nuevos"]=campo["Mensajes_nuevos"]
+    mensajes["Viejos"]=campo["Mensajes_viejos"]
+    return json.dumps(mensajes)
 
   def on_disconnect(self):
     print('disconect', request.sid)
@@ -107,6 +105,7 @@ class Servidor(Namespace):
 
   #Data es un string
   def on_mensaje(self,data):
+    print(data)
     data2={}
     #print(sids)
     #print(data)
@@ -116,6 +115,7 @@ class Servidor(Namespace):
     data2[user]= data#data.update({"Emisor":user})
     #salas.update_one({"Nombre":room},{'$push':{"Mensajes": data2}})
     emit('recv_message',json.dumps(data2),room=room,include_self=False)
+
 
   def on_crearsala(self,nombreSala):
     #print(nombreSala)
@@ -184,7 +184,7 @@ class Servidor(Namespace):
     usuario=usuarios.find_one({"Login":user})
     usuarios.update_one({"Login":user}, {'$set':{'Sala_creada':"",'Sala':""}})
 
-    self.deleteroom(usuario["Sala_creada"])
+    self.deleteroom(usuario["Sala_creada"],user)
     
     del users[user]
     del sids[request.sid]
@@ -214,9 +214,9 @@ class Servidor(Namespace):
       a=usuarios.find_one({"Login":recp,"Mensajes_nuevos."+user: {'$exists':True}})
 
       if a:
-        usuarios.update_one({"Login":recp}, {'$push':{"Mensajes_nuevos.$[element]."+user:data["Mensaje"]}}, array_filters=[{"element."+user:{'$exists':True}}])
+        usuarios.update_one({"Login":recp}, {'$push':{"Mensajes_nuevos."+user:data["Mensaje"]}})
       else:
-        usuarios.update_one({"Login":recp}, {'$push':{"Mensajes_nuevos":{user:[data["Mensaje"]]}}})
+        usuarios.update_one({"Login":recp}, {'$set':{"Mensajes_nuevos."+user:[data["Mensaje"]]}})
       return json.dumps("")
     return json.dumps("El usuario "+recp+" no existe")
 
@@ -224,14 +224,11 @@ class Servidor(Namespace):
     data=json.loads(data)
     username= sids[request.sid]
     usuario=usuarios.find_one({"Login":username})
-    for message in usuario["Mensajes_nuevos"]:
-      if data in message:
-        break 
-    if len(usuario["Mensajes_viejos"])==0:
-      usuarios.update_one({"Login":username},{'$push':{"Mensajes_viejos":{data:message}}})
+    message= usuario["Mensajes_nuevos"][data]
+    if data in usuario["Mensajes_viejos"]:
+      usuarios.update_one({"Login":username},{'$push':{"Mensajes_viejos."+data:{'$each':message}}})
     else:
-      usuarios.update_one({"Login":username},{'$push':{"Mensajes_viejos.$[element]."+data:{'$each':message}}}, array_filters=[{"element."+data:{"$exists":True}}])
-    
+      usuarios.update_one({"Login":username},{'$set':{"Mensajes_viejos."+data:message}})
     usuarios.update_one({"Login":username},{'$pull':{"Mensajes_nuevos":message}})
 
     #usuarios.update_one({"Login":"cr7"},{'$unset':{"Mensajes_nuevos.$[element].Emisor":""}},upsert=True,array_filters=[{"element.Emisor":{'$eq':"ppp"}}])
@@ -251,13 +248,14 @@ class Servidor(Namespace):
       username= usuario["Login"]
     if usuario["Sala_creada"]==current_room:
       #self.on_salir(username)
-      ret= self.deleteroom(current_room)
+      ret= self.deleteroom(current_room, usuario["Login"])
       usuarios.update_one({"Login":username},{'$set':{'Sala_creada':""}})
       return ret
     else:
       return json.dumps("No tiene credenciales para eliminar esta sala")
 
-  def deleteroom(self, current_room):
+
+  def deleteroom(self, current_room, Login):
     print(current_room)
     if current_room:
       clientes=usuarios.find({"Sala":current_room})
@@ -265,7 +263,8 @@ class Servidor(Namespace):
         for cliente in clientes:
           #print(cliente)
           self.on_salir(cliente["Login"], current_room)
-          emit('salir')
+          if Login!=cliente["Login"]:
+            emit('salir',json.dumps('La sala en la que se encontraba ha sido eliminada'), room=users[cliente["Login"]])
         #print("sala:) ",chatrooms[current_room].clientes)
         close_room(room=current_room)
       salas.delete_one({"Nombre":current_room})
