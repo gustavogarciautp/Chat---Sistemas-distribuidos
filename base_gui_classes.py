@@ -30,6 +30,8 @@ class Window(Tk):
 		if os.path.exists('private_msgs.txt'):
 			os.remove('private_msgs.txt')
 
+		sys.exit()
+
 
 class SubWindow(Toplevel):
 	def __init__(self, title):

@@ -463,19 +463,27 @@ container_messages.create_window(0, 0, width = ANCHO * 0.7,
 
 
 def create_private_msgs(msgs):
+	'''
+	This function is to load the messages when the user  start session
+	'''
 	new_msgs = msgs['Nuevos']
 	old_msgs = msgs['Viejos']
 
-	if old_msgs != {}:
-		if new_msgs != {}:
-			for user in new_msgs.keys():
-				if user in old_msgs:
-					old_msgs[user] = old_msgs[user] + new_msgs[user]
-			chats = old_msgs
+	if old_msgs != {} or new_msgs != {}:
+		if old_msgs != {}:
+			if new_msgs != {}:
+				for user in new_msgs.keys():
+					if user in old_msgs:
+						old_msgs[user] = old_msgs[user] + new_msgs[user]
+				chats = old_msgs
+				private_message.config(image = private_message.images[1], 
+					bg = VERDE)
+			else:
+				chats = old_msgs
+		else:
+			chats = new_msgs
 			private_message.config(image = private_message.images[1], 
 				bg = VERDE)
-		else:
-			chats = old_msgs
 	else:
 		chats = {}
 
