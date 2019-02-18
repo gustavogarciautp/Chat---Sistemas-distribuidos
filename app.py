@@ -61,6 +61,16 @@ def create_room():
 		else:
 			subWindow.destroy()
 			room_name['text'] = room
+			
+			# Clear the message window
+
+			vbar.destroy()
+			container_messages.destroy()
+
+			# Recreating the window to put the messages
+
+			create_window_scrollable()
+
 			window.update()
 			return
 
@@ -97,6 +107,18 @@ def enter_to_room():
 		
 		if room[1:-1] != 'Default':
 			room_name['text'] = room[1:-1]
+		else:
+			room_name['text'] = 'sala principal'
+		
+		# Clear the message window
+
+		vbar.destroy()
+		container_messages.destroy()
+
+		# Recreating the window to put the messages
+
+		create_window_scrollable()
+
 		subWindow.destroy()
 		window.update()
 		return
@@ -109,9 +131,9 @@ def enter_to_room():
 	subWindow = SubWindow('Entrar a una sala')
 	aux_frame = Frame(subWindow)
 
-	vbar = Scrollbar(aux_frame)
+	scroll = Scrollbar(aux_frame)
 	list_rooms = Listbox(aux_frame, yscrollcommand = vbar.set)
-	vbar.config(command = list_rooms.yview)
+	scroll.config(command = list_rooms.yview)
 
 	get_in = AppButton(subWindow, 'Entrar')
 	get_in['command'] = get_in_room
@@ -120,7 +142,7 @@ def enter_to_room():
 		list_rooms.insert('end', room)
 
 	aux_frame.pack(side = LEFT, expand = True)
-	vbar.pack(side = RIGHT, fill=Y)
+	scroll.pack(side = RIGHT, fill=Y)
 	list_rooms.pack(side = LEFT, fill = BOTH)
 	get_in.pack(side = RIGHT, expand = True, padx = (0, 30))
 
@@ -129,6 +151,16 @@ def enter_to_room():
 def exit_room():
 	client.salirsala()
 	room_name['text'] = 'sala principal'
+
+	# Clear the message window
+
+	vbar.destroy()
+	container_messages.destroy()
+
+	# Recreating the window to put the messages
+
+	create_window_scrollable()
+	
 	window.update()
 
 def new_message(data):
@@ -141,7 +173,6 @@ def new_message(data):
 	text = user + '\n' + message
 	new_message = Message(messages, text=text, width = ANCHO * 0.4)
 	new_message.pack(anchor = W, pady = (10, 10), padx = (20, 0))
-	window.update()
 	window.update()
 	container_messages.config(scrollregion = container_messages.bbox('all'))
 	container_messages.yview_moveto(1.0)
@@ -334,6 +365,35 @@ def show_users():
 	window.mainloop()
 
 
+def create_window_scrollable():
+	'''
+	This function is used to generate the window that will contain the messages of the room
+	'''
+	global vbar
+	global container_messages
+	global messages
+
+	vbar = Scrollbar(bodyFrame)  # Scrollbar to handle the scroll over the messages
+
+	container_messages = Canvas(bodyFrame, 
+		yscrollcommand = vbar.set)  # To bind and allow the scrolling
+	container_messages['bg'] = container_messages.master['bg']
+	container_messages.bind_all('<Button-5>', down_mouse_wheel)
+	container_messages.bind_all('<Button-4>', up_mouse_wheel)
+
+	vbar.config(command = container_messages.yview)  # Sets the scroll command
+	vbar.pack(side = RIGHT, fill = Y)
+
+	messages = Frame(container_messages)  # Scrollable region of the canvas
+	messages.config(bg = messages.master['bg'], 
+		width = messages.master['width'], 
+		height = messages.master['height'])
+
+	container_messages.pack(side = LEFT, fill = BOTH, expand = True)
+	container_messages.create_window(0, 0, width = ANCHO * 0.7, 
+		window = messages, anchor = NE)  # Creates the window scrollable
+
+
 # Definition of the main window and the frame containers of the app
 
 window = Window('ChatRoom')
@@ -439,25 +499,7 @@ send_button.pack(fill = BOTH, expand = True)
 
 # Room messages
 
-vbar = Scrollbar(bodyFrame)  # Scrollbar to handle the scroll over the messages
-
-container_messages = Canvas(bodyFrame, 
-	yscrollcommand = vbar.set)  # To bind and allow the scrolling
-container_messages['bg'] = container_messages.master['bg']
-container_messages.bind_all('<Button-5>', down_mouse_wheel)
-container_messages.bind_all('<Button-4>', up_mouse_wheel)
-
-vbar.config(command = container_messages.yview)  # Sets the scroll command
-vbar.pack(side = RIGHT, fill = Y)
-
-messages = Frame(container_messages)  # Scrollable region of the canvas
-messages.config(bg = messages.master['bg'], 
-	width = messages.master['width'], 
-	height = messages.master['height'])
-
-container_messages.pack(side = LEFT, fill = BOTH, expand = True)
-container_messages.create_window(0, 0, width = ANCHO * 0.7, 
-	window = messages, anchor = NE)  # Creates the window scrollable
+create_window_scrollable()
 
 
 
@@ -472,7 +514,7 @@ def create_private_msgs(msgs):
 	if old_msgs != {} or new_msgs != {}:
 		if old_msgs != {}:
 			if new_msgs != {}:
-				for user in new_msgs.keys():
+				for user in list(new_msgs.keys()):
 					if user in old_msgs:
 						old_msgs[user] = old_msgs[user] + new_msgs[user]
 				chats = old_msgs
