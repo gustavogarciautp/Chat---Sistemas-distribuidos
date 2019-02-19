@@ -10,7 +10,7 @@ import re
 # Regular expressions to recognize the diferent input fields
 
 re_name = r'\b[a-zA-ZÑñ]+'
-re_username = r'^[a-zA-Z][a-zA-Z0-9_.-]+$'
+re_username = r'^[a-zA-ZÑñ][a-zA-ZÑñ0-9_.-]+$'
 re_age = r'^[1-9][0-9]?$'
 
 def change_login(event):
@@ -19,12 +19,11 @@ def change_login(event):
 	'''
 	window.quit()
 	import subprocess
-	PYTHONNAMES = ['python', 'python3', 'py']
-	for python in PYTHONNAMES:
-		try:
-			program = subprocess.Popen(python+' login.py', shell = True)
-		except:
-			pass
+	import platform
+	if platform.system == 'Windows':
+		program = subprocess.Popen(['python', 'login.py'])
+	else:
+		program = subprocess.Popen(['python3', 'login.py'])
 
 def validate_fields(event):
 	''' Function to validate the entries of the user '''
@@ -101,14 +100,11 @@ def send_data():
 	else:
 		window.quit()
 		import subprocess
-		PYTHONNAMES = ['python', 'python3', 'py']
-		for python in PYTHONNAMES:
-			try:
-				program = subprocess.Popen(python+' login.py', shell = True)
-			except:
-				pass
-	
-
+		import platform
+		if platform.system == 'Windows':
+			program = subprocess.Popen(['python', 'login.py'])
+		else:
+			program = subprocess.Popen(['python3', 'login.py'])
 
 
 # Definition of the main window and the frame containers of the app

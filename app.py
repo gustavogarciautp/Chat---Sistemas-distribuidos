@@ -7,7 +7,6 @@ import json
 import re
 from chatroom import *
 import threading
-print('prueba')
 
 # Load the username
 
@@ -223,8 +222,8 @@ def load_private_msgs():
 		container_chat = Canvas(private_chat, 
 			yscrollcommand = scroll.set)  # To bind and allow the scrolling
 		container_chat['bg'] = container_chat.master['bg']
-		container_chat.bind('<Button-5>', up_mouse_wheel)
-		container_chat.bind('<Button-4>', down_mouse_wheel)
+		container_chat.bind('<Up>', up_mouse_wheel)
+		container_chat.bind('<Down>', down_mouse_wheel)
 
 		scroll.config(command = container_messages.yview)  # Sets the scroll command
 		scroll.pack(side = RIGHT, fill = Y)
