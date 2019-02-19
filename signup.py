@@ -20,7 +20,7 @@ def change_login(event):
 	window.quit()
 	import subprocess
 	import platform
-	if platform.system == 'Windows':
+	if platform.system() == 'Windows':
 		program = subprocess.Popen(['python', 'login.py'])
 	else:
 		program = subprocess.Popen(['python3', 'login.py'])
@@ -101,7 +101,7 @@ def send_data():
 		window.quit()
 		import subprocess
 		import platform
-		if platform.system == 'Windows':
+		if platform.system() == 'Windows':
 			program = subprocess.Popen(['python', 'login.py'])
 		else:
 			program = subprocess.Popen(['python3', 'login.py'])

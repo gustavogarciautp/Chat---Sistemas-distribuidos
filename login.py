@@ -45,7 +45,7 @@ def send_data():
 		window.quit()
 		import subprocess
 		import platform
-		if platform.system == 'Windows':
+		if platform.system() == 'Windows':
 			program = subprocess.Popen(['python', 'app.py'])
 		else:
 			program = subprocess.Popen(['python3', 'app.py'])

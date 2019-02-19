@@ -222,10 +222,10 @@ def load_private_msgs():
 		container_chat = Canvas(private_chat, 
 			yscrollcommand = scroll.set)  # To bind and allow the scrolling
 		container_chat['bg'] = container_chat.master['bg']
-		container_chat.bind('<Up>', up_mouse_wheel)
-		container_chat.bind('<Down>', down_mouse_wheel)
+		container_chat.bind('<Button-4>', up_mouse_wheel)
+		container_chat.bind('<Button-5>', down_mouse_wheel)
 
-		scroll.config(command = container_messages.yview)  # Sets the scroll command
+		scroll.config(command = container_chat.yview)  # Sets the scroll command
 		scroll.pack(side = RIGHT, fill = Y)
 
 		messages_chat = Frame(container_chat)  # Scrollable region of the canvas
