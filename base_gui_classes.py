@@ -51,7 +51,6 @@ class AppFrame(Frame):
 		self.pack(side = side, expand = True, fill = BOTH)
 		self.pack_propagate(0)
 
-
 class AppButton(Button):
 	def __init__(self, frame, text):
 		super().__init__(frame, text = text, bg = AZUL_CLARO,

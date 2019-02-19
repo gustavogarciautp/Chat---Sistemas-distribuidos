@@ -95,6 +95,17 @@ def eliminate_room():
 	else:
 		room_name['text'] = 'sala principal'
 
+		# Clear the message window
+
+		vbar.destroy()
+		container_messages.destroy()
+
+		# Recreating the window to put the messages
+
+		create_window_scrollable()
+
+
+
 def enter_to_room():
 	'''
 	Creates the interface to enter at one room
@@ -209,10 +220,10 @@ def load_private_msgs():
 		client.leerprivado(json.dumps(user, ensure_ascii = False))
 
 		
-		def up_mouse_wheel(event):
+		def move_up(event):
 			container_chat.yview_scroll(-1, 'units')
 
-		def down_mouse_wheel(event):
+		def move_down(event):
 			container_chat.yview_scroll(1, 'units')
 
 
@@ -222,8 +233,8 @@ def load_private_msgs():
 		container_chat = Canvas(private_chat, 
 			yscrollcommand = scroll.set)  # To bind and allow the scrolling
 		container_chat['bg'] = container_chat.master['bg']
-		container_chat.bind('<Button-4>', up_mouse_wheel)
-		container_chat.bind('<Button-5>', down_mouse_wheel)
+		container_chat.bind('<Button-4>', move_up)
+		container_chat.bind('<Button-5>', move_down)
 
 		scroll.config(command = container_chat.yview)  # Sets the scroll command
 		scroll.pack(side = RIGHT, fill = Y)
@@ -280,6 +291,16 @@ def deleted_room(data):
 	data = json.loads(data)
 	messagebox.showerror('Sala eliminada', data)
 	room_name['text'] = 'sala principal'
+
+	# Clear the message window
+
+	vbar.destroy()
+	container_messages.destroy()
+
+	# Recreating the window to put the messages
+
+	create_window_scrollable()
+
 	window.update()
 
 mensajes_sala = threading.Thread(target = listener)  # Thread for the listener
@@ -324,7 +345,7 @@ def private_message():
 		data = {'Receptor':dest, 'Mensaje':msg}
 		data = json.dumps(data, ensure_ascii = False)
 		errors = client.msgprivado(data)
-		if errors:
+		if json.loads(errors):
 			messagebox.showerror('error', errors, parent = subWindow)
 		else:
 			subWindow.destroy()
