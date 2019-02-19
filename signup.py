@@ -19,8 +19,16 @@ def change_login(event):
 	'''
 	window.quit()
 	import subprocess
-	program = subprocess.Popen('python3 login.py', 
-		stdout=subprocess.PIPE, shell=True)
+	try:
+		program = subprocess.Popen('python3 login.py', 
+			stdout=subprocess.PIPE, shell=True)
+	except:
+		try:
+			program = subprocess.Popen('python login.py', 
+				stdout=subprocess.PIPE, shell=True)
+		except:
+			program = subprocess.Popen('py login.py', 
+				stdout=subprocess.PIPE, shell=True)
 
 def validate_fields(event):
 	''' Function to validate the entries of the user '''
@@ -97,8 +105,16 @@ def send_data():
 	else:
 		window.quit()
 		import subprocess
-		program = subprocess.Popen('python3 login.py', 
-			stdout=subprocess.PIPE, shell=True)
+		try:
+			program = subprocess.Popen('python3 login.py', 
+				stdout=subprocess.PIPE, shell=True)
+		except:
+			try:
+				program = subprocess.Popen('python login.py', 
+					stdout=subprocess.PIPE, shell=True)
+			except:
+				program = subprocess.Popen('py login.py', 
+					stdout=subprocess.PIPE, shell=True)
 	
 
 

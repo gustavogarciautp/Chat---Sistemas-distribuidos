@@ -211,44 +211,44 @@ def load_private_msgs():
 
 		
 		def up_mouse_wheel(event):
-			container_messages.yview_scroll(-1, 'units')
+			container_chat.yview_scroll(-1, 'units')
 
 		def down_mouse_wheel(event):
-			container_messages.yview_scroll(1, 'units')
+			container_chat.yview_scroll(1, 'units')
 
 
 		private_chat = SubWindow(user)
-		vbar = Scrollbar(private_chat)  # Scrollbar to handle the scroll over the messages
+		scroll = Scrollbar(private_chat)  # Scrollbar to handle the scroll over the messages
 
-		container_messages = Canvas(private_chat, 
-			yscrollcommand = vbar.set)  # To bind and allow the scrolling
-		container_messages['bg'] = container_messages.master['bg']
-		container_messages.bind_all('<Button-5>', up_mouse_wheel)
-		container_messages.bind_all('<Button-4>', down_mouse_wheel)
+		container_chat = Canvas(private_chat, 
+			yscrollcommand = scroll.set)  # To bind and allow the scrolling
+		container_chat['bg'] = container_chat.master['bg']
+		container_chat.bind('<Button-5>', up_mouse_wheel)
+		container_chat.bind('<Button-4>', down_mouse_wheel)
 
-		vbar.config(command = container_messages.yview)  # Sets the scroll command
-		vbar.pack(side = RIGHT, fill = Y)
+		scroll.config(command = container_messages.yview)  # Sets the scroll command
+		scroll.pack(side = RIGHT, fill = Y)
 
-		messages = Frame(container_messages)  # Scrollable region of the canvas
-		messages.config(bg = messages.master['bg'], 
-			width = messages.master['width'], 
-			height = messages.master['height'])
+		messages_chat = Frame(container_chat)  # Scrollable region of the canvas
+		messages_chat.config(bg = messages_chat.master['bg'], 
+			width = messages_chat.master['width'], 
+			height = messages_chat.master['height'])
 
-		container_messages.pack(side = LEFT, fill = BOTH, expand = True)
-		container_messages.create_window(0, 0, width = ANCHO * 0.7, 
-			window = messages, anchor = NE)  # Creates the window scrollable
+		container_chat.pack(side = LEFT, fill = BOTH, expand = True)
+		container_chat.create_window(0, 0, width = ANCHO * 0.7, 
+			window = messages_chat, anchor = NE)  # Creates the window scrollable
 
 
 		# Loads the whole chat with the selected user
 
 		for message in chats[user]:
-			new_message = Message(messages, text=message, width = ANCHO * 0.6)
+			new_message = Message(messages_chat, text=message, width = ANCHO * 0.6)
 			new_message.pack(anchor = W, pady = (10, 10), padx = (20, 0))
 
 		# Update the window to enable the scrollregion
 		private_chat.update()
-		container_messages.config(scrollregion = container_messages.bbox('all'))
-		container_messages.yview_moveto(1.0)
+		container_chat.config(scrollregion = container_chat.bbox('all'))
+		container_chat.yview_moveto(1.0)
 
 		private_chat.mainloop()
 	
@@ -324,25 +324,28 @@ def private_message():
 		msg = varMessage.get()
 		data = {'Receptor':dest, 'Mensaje':msg}
 		data = json.dumps(data, ensure_ascii = False)
-		client.msgprivado(data)
-		window.destroy()
-		return
+		errors = client.msgprivado(data)
+		if errors:
+			messagebox.showerror('error', errors, parent = subWindow)
+		else:
+			subWindow.destroy()
+			return
 
-	window = SubWindow('Mensaje Privado')
+	subWindow = SubWindow('Mensaje Privado')
 
 	varUsername = StringVar()
 	varMessage = StringVar()
 
-	username = AppEntry(window, 'Para', AZUL_OSCURO, varUsername)
-	message = AppEntry(window, 'Mensaje', AZUL_OSCURO, varMessage)
-	button = AppButton(window, 'Enviar')
+	username = AppEntry(subWindow, 'Para', AZUL_OSCURO, varUsername)
+	message = AppEntry(subWindow, 'Mensaje', AZUL_OSCURO, varMessage)
+	button = AppButton(subWindow, 'Enviar')
 	button['command'] = send
 
 	username.pack(expand = True)
 	message.pack(expand = True)
 	button.pack(expand = True)
 
-	window.mainloop()
+	subWindow.mainloop()
 
 def show_users():
 	users = client.showusers()

@@ -39,7 +39,9 @@ class Cliente():
         self.socketIO.emit('salir')
 
     def msgprivado(self, data):
-        self.socketIO.emit('private', data)
+        self.socketIO.emit('private', data, self.register_errors)
+        self.socketIO.wait(seconds=1)
+        return self.errors
 
     def exit(self):
         self.socketIO.emit('desconectar')
