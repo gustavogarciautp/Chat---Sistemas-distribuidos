@@ -48,19 +48,21 @@ class Servidor(Namespace):
   def on_startsession(self,data):
     print(data)
     data= json.loads(data)
-
-    #Verificar que no hayan usuarios con el mismo Username
+      #Verificar que no hayan usuarios con el mismo Username
     campo=usuarios.find_one({"Login":data["Login"],"Password":hashlib.sha1(data["Password"].encode()).hexdigest()})
-    if campo:    
-      sids[request.sid] = data["Login"]
-      users[data["Login"]]= request.sid
+    if campo: 
+      if data["Login"] in users:
+        return json.dumps("El usuario ya esta conectado")
+      else:   
+        sids[request.sid] = data["Login"]
+        users[data["Login"]]= request.sid
 
-      join_room('Default')
-      room=self.findRoom(request.sid)
-      usuarios.update_one(campo, {"$set": {"Sala":room}})
+        join_room('Default')
+        room=self.findRoom(request.sid)
+        usuarios.update_one(campo, {"$set": {"Sala":room}})
 
-      sala= salas.find_one_and_update({"Nombre": "Default"}, {'$inc': {'Usuarios': 1}})      
-      return json.dumps("")
+        sala= salas.find_one_and_update({"Nombre": "Default"}, {'$inc': {'Usuarios': 1}})      
+        return json.dumps("")
     else:
       return json.dumps("El nombre de usuario y contraseña no coinciden", ensure_ascii=False)
 
@@ -90,7 +92,6 @@ class Servidor(Namespace):
     #salas.update_one({"Nombre":room},{'$push':{"Mensajes": data2}})
     emit('recv_message',json.dumps(data2),room=room,include_self=False)
 
-
   def on_crearsala(self,nombreSala):
     nameRoom=json.loads(nombreSala)
     chatroom=salas.find_one({"Nombre":nameRoom})
@@ -109,7 +110,6 @@ class Servidor(Namespace):
       return chatrooms[1]
     else:
       return chatrooms[0] 
-
 
   def on_entrarsala(self,nombreSala, username=''):
     nombreSala= json.loads(nombreSala)
@@ -218,7 +218,6 @@ class Servidor(Namespace):
     else:
       return json.dumps("No tiene credenciales para eliminar esta sala")
 
-
   def deleteroom(self, current_room, Login):
     print(current_room)
     if current_room:
@@ -236,3 +235,5 @@ sio.on_namespace(Servidor())
 if __name__ == '__main__':
   print("server1")
   sio.run(app, host='10.253.2.250',port=8000)  
+
+
