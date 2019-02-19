@@ -43,17 +43,12 @@ def send_data():
 	else:
 		create_file()
 		window.quit()
-		import subprocess
-		try:
-			program = subprocess.Popen('python3 login.py', 
-				stdout=subprocess.PIPE, shell=True)
-		except:
+		PYTHONNAMES = ['python', 'python3', 'py']
+		for python in PYTHONNAMES:
 			try:
-				program = subprocess.Popen('python login.py', 
-					stdout=subprocess.PIPE, shell=True)
+				program = subprocess.Popen(python+' login.py', shell = True)
 			except:
-				program = subprocess.Popen('py login.py', 
-					stdout=subprocess.PIPE, shell=True)
+				pass
 
 
 # Definition of the main window and the frame containers of the app

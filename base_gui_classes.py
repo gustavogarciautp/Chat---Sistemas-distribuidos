@@ -1,7 +1,11 @@
 # --coding: utf-8--
 
-from tkinter import *
-from tkinter import messagebox
+try:
+	from tkinter import *
+	from tkinter import messagebox
+except:
+	import sys
+	sys.exit()
 
 # PALETA DE COLORES
 NEGRO = '#1F2124'
